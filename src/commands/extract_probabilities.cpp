@@ -1,4 +1,5 @@
 #include "common.h"
+#include "utils/input_iterator.h"
 
 #include <cstdio>
 
@@ -71,7 +72,26 @@ int main(int argc, char ** argv) {
     llama_context * ctx;
     std::tie(model, ctx) = load_model(params);
     
-    // TODO: implement probability extraction here
+    // Tokenization
+    const int n_ctx = llama_n_ctx(ctx);
+    const int n_batch = params.n_batch;
+    const bool add_bos = llama_should_add_bos_token(llama_get_model(ctx));
+
+    std::vector<llama_token> tokens = ::llama_tokenize(ctx, params.prompt, add_bos);
+    if (int(tokens.size()) < 2*n_ctx) {
+        fprintf(stderr, "%s: you need at least %d tokens to evaluate perplexity with a context of %d\n",__func__,2*n_ctx,
+                n_ctx);
+        fprintf(stderr, "%s: the data file you provided tokenizes to only %zu tokens\n",__func__,tokens.size());
+        return 1;
+    }
+
+    InputIterator<llama_token> input_iterator(&tokens, n_ctx, n_batch);
+    int i = 1;
+    ChunkCallback chunk_callback = [&](Chunk chunk){
+        printf("Chunk number: %i\n", i);
+        i++;
+    };
+    input_iterator.iterate(chunk_callback);
 
     model_free(ctx, model);
 

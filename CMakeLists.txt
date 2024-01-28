@@ -2,7 +2,6 @@ cmake_minimum_required(VERSION 3.11)
 project(calibration_in_llm)
 
 include(FetchContent)
-set(TARGET extract_probabilities)
 
 # Declare the external project
 FetchContent_Declare(
@@ -15,7 +14,9 @@ FetchContent_Declare(
 FetchContent_MakeAvailable(llama_cpp)
 
 # Build for extract_probabilities.cpp
-add_executable(${TARGET} src/commands/extract_probabilities.cpp)
+set(TARGET extract_probabilities)
+add_executable(${TARGET} src/commands/extract_probabilities.cpp src/utils/input_iterator.cpp)
+target_include_directories(${TARGET} PRIVATE include)
 install(TARGETS ${TARGET} RUNTIME)
 target_link_libraries(${TARGET} PRIVATE common llama ${CMAKE_THREAD_LIBS_INIT})
 target_compile_features(${TARGET} PRIVATE cxx_std_11)
