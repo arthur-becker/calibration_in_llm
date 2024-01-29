@@ -1,7 +1,9 @@
 cmake_minimum_required(VERSION 3.11)
+set(CMAKE_CXX_STANDARD 11)
 project(calibration_in_llm)
 
 include(FetchContent)
+find_package(ZLIB REQUIRED)
 
 # Declare the external project
 FetchContent_Declare(
@@ -27,3 +29,6 @@ configure_file(
     ${CMAKE_CURRENT_SOURCE_DIR}/build/ggml-metal.metal
     COPYONLY
 )
+
+# Include test subdirectory
+add_subdirectory(tests)
