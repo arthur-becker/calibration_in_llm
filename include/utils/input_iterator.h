@@ -74,6 +74,8 @@ public:
     /// @param callback is called for every `Batch`
     /// @param chunk Chunk that is splitted into batches
     void iterate(BatchCallback callback, Chunk chunk);
+
+    std::vector<T> * getInput();
 };
 
 #endif // INPUT_PROCESSOR_H

@@ -17,10 +17,10 @@ FetchContent_MakeAvailable(llama_cpp)
 
 # Build for extract_probabilities.cpp
 set(TARGET extract_probabilities)
-add_executable(${TARGET} src/commands/extract_probabilities.cpp src/utils/input_iterator.cpp)
+add_executable(${TARGET} src/commands/extract_probabilities.cpp src/utils/input_iterator.cpp src/utils/result_writer.cpp)
 target_include_directories(${TARGET} PRIVATE include)
 install(TARGETS ${TARGET} RUNTIME)
-target_link_libraries(${TARGET} PRIVATE common llama ${CMAKE_THREAD_LIBS_INIT})
+target_link_libraries(${TARGET} PRIVATE common llama ZLIB::ZLIB ${CMAKE_THREAD_LIBS_INIT})
 target_compile_features(${TARGET} PRIVATE cxx_std_11)
 
 # Needed for metal on macOS

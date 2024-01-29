@@ -78,6 +78,11 @@ void InputIterator<T>::iterate(BatchCallback callback, Chunk chunk){
     }
 }
 
+template <typename T>
+std::vector<T> * InputIterator<T>::getInput(){
+    return this->input;
+}
+
 template class InputIterator<char>;
 
 template class InputIterator<llama_token>;
