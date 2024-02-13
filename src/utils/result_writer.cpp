@@ -1,6 +1,7 @@
 #include "utils/result_writer.h"
 #include <zlib.h>
 #include <assert.h>
+#include <cstring>
 
 /*
 PositionResult class
@@ -25,12 +26,12 @@ uint32_t PositionResult::getChecksum() {
     uint8_t* data_ptr = data.data();
 
     // Copy correct token
-    memcpy(data_ptr, &this->correct_token, sizeof(this->correct_token));
+    std::memcpy(data_ptr, &this->correct_token, sizeof(this->correct_token));
     data_ptr += sizeof(this->correct_token);
 
     // Copy token data
     for (float token : this->token_data) {
-        memcpy(data_ptr, &token, float_size);
+        std::memcpy(data_ptr, &token, float_size);
         data_ptr += float_size;
     }
 
