@@ -1,8 +1,11 @@
 #include "common.h"
 #include "utils/input_iterator.h"
 #include "utils/result_writer.h"
+#include "utils/position_result/position_full_result.h"
+#include "utils/position_result/position_result.h"
 
 #include <cstdio>
+#include <fstream>
 
 #if defined(_MSC_VER)
 #pragma warning(disable: 4244 4267) // possible loss of data
@@ -109,11 +112,12 @@ std::vector<float> get_chunk_logits(
     return chunk_logits;
 }
 
+template<typename T>
 void write_chunk_logits(
     std::vector<float> * logits,
     Chunk chunk,
     std::vector<int> * tokens,
-    ResultWriter * result_writer,
+    ResultWriter<T> * result_writer,
     const int n_ctx,
     const int n_vocab
     ){
@@ -127,7 +131,7 @@ void write_chunk_logits(
         uint16_t correct_token = tokens->at(token_positon);
 
         // TODO: save only part of the logits (top-k, top-p...)
-        PositionResult position_output(token_data, correct_token);
+        PositionFullResult position_output(token_data, correct_token);
         result_writer->addPositionResult(position_output);
     }
 
@@ -161,7 +165,7 @@ int main(int argc, char ** argv) {
 
     // TODO: generate file name or get it from params
     std::string filename = "output.logits";
-    ResultWriter result_writer(filename);
+    ResultWriter<PositionFullResult> result_writer(filename);
     // check if file exists
     if(std::ifstream(filename).good()){
         printf("File %s already exists. Please remove it and try again.\n", filename.c_str());
