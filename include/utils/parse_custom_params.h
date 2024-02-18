@@ -1,3 +1,5 @@
+#pragma once
+
 enum OutputWriterType {
     FULL,
     TOP_K

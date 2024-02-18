@@ -18,6 +18,7 @@ FetchContent_MakeAvailable(llama_cpp)
 # Build for extract_probabilities.cpp
 set(TARGET extract_probabilities)
 add_executable(${TARGET} src/commands/extract_probabilities.cpp
+    src/utils/llama_cpp_helper.cpp
     src/utils/input_iterator.cpp
     src/utils/result_writer.cpp
     src/utils/parse_custom_params.cpp
