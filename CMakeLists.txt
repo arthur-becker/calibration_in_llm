@@ -20,6 +20,7 @@ set(TARGET extract_probabilities)
 add_executable(${TARGET} src/commands/extract_probabilities.cpp
     src/utils/input_iterator.cpp
     src/utils/result_writer.cpp
+    src/utils/parse_custom_params.cpp
     src/utils/position_result/position_result.cpp
     src/utils/position_result/position_full_result.cpp
     src/utils/position_result/position_top_result.cpp)

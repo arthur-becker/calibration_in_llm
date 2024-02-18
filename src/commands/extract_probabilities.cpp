@@ -2,16 +2,36 @@
 #include "utils/input_iterator.h"
 #include "utils/result_writer.h"
 #include "utils/position_result/position_full_result.h"
+#include "utils/position_result/position_top_result.h"
 #include "utils/position_result/position_result.h"
+#include "utils/parse_custom_params.h"
 
 #include <cstdio>
 #include <fstream>
+#include <cassert>
 
 #if defined(_MSC_VER)
 #pragma warning(disable: 4244 4267) // possible loss of data
 #endif
 
-gpt_params init_params(int argc, char ** argv){
+
+template<typename T>
+void assert_output_writer_type(CustomParams custom_params, OutputWriterType expected_output_writer_type){
+    static_assert(std::is_base_of<PositionResult, T>::value, "T must be a subclass of PositionResult");
+
+    // OutputWriterType::FULL -> PositionFullResult
+    assert((custom_params.output_writer_type != OutputWriterType::FULL || std::is_base_of<PositionFullResult, T>::value)); 
+    
+    // OutputWriterType::TOP_K -> PositionTopResult
+    assert((custom_params.output_writer_type != OutputWriterType::TOP_K || std::is_base_of<PositionTopResult, T>::value));
+
+}
+
+/// @brief Parse standard parameters of llama.cpp from command line and set defaults
+/// @param argc  Number of command line arguments
+/// @param argv  Command line arguments
+/// @return     Parsed parameters
+gpt_params init_llama_cpp_params(int argc, char ** argv){
     gpt_params params;
 
     params.n_batch = 512;
@@ -119,8 +139,11 @@ void write_chunk_logits(
     std::vector<int> * tokens,
     ResultWriter<T> * result_writer,
     const int n_ctx,
-    const int n_vocab
+    const int n_vocab,
+    CustomParams custom_params
     ){
+    assert_output_writer_type<T>(custom_params, custom_params.output_writer_type);
+
     int second_half_start = n_ctx / 2;
     for(int i = second_half_start; i < n_ctx; i++){
         float * first = (float *) logits->data() + i * n_vocab; 
@@ -130,16 +153,25 @@ void write_chunk_logits(
         int token_positon = chunk.getStart() + i; // Token position in the tokens vector
         uint16_t correct_token = tokens->at(token_positon);
 
-        // TODO: save only part of the logits (top-k, top-p...)
-        PositionFullResult position_output(token_data, correct_token);
-        result_writer->addPositionResult(position_output);
+        PositionResult* position_output = nullptr;
+        if(custom_params.output_writer_type == OutputWriterType::FULL){
+            position_output = new PositionFullResult(token_data, correct_token);
+        } else if(custom_params.output_writer_type == OutputWriterType::TOP_K){
+            position_output = new PositionTopResult(token_data, correct_token, custom_params.top_k);
+        }
+
+        T* casted_position_output = dynamic_cast<T*>(position_output);
+        result_writer->addPositionResult(*casted_position_output);
     }
 
     result_writer->writeAndClear();
 }
 
-int main(int argc, char ** argv) {
-    gpt_params params = init_params(argc, argv);
+
+
+template<typename T>
+int extract_probabilities(gpt_params params, CustomParams custom_params){
+    assert_output_writer_type<T>(custom_params, custom_params.output_writer_type);
 
     llama_model * model;
     llama_context * ctx;
@@ -165,7 +197,7 @@ int main(int argc, char ** argv) {
 
     // TODO: generate file name or get it from params
     std::string filename = "output.logits";
-    ResultWriter<PositionFullResult> result_writer(filename);
+    ResultWriter<T> result_writer(filename);
     // check if file exists
     if(std::ifstream(filename).good()){
         printf("File %s already exists. Please remove it and try again.\n", filename.c_str());
@@ -179,7 +211,7 @@ int main(int argc, char ** argv) {
         llama_kv_cache_clear(ctx);
 
         std::vector<float> chunk_logits = get_chunk_logits(chunk, &input_iterator, ctx, n_batch, n_vocab, add_bos);
-        write_chunk_logits(&chunk_logits, chunk, &tokens, &result_writer, n_ctx, n_vocab);
+        write_chunk_logits<T>(&chunk_logits, chunk, &tokens, &result_writer, n_ctx, n_vocab, custom_params);
         // TODO: calculate probabilities and save write them to another file
     };
     input_iterator.iterate(chunk_callback);
@@ -191,4 +223,18 @@ int main(int argc, char ** argv) {
     model_free(ctx, model);
 
     return 0;
+}
+
+int main(int argc, char ** argv) {
+    CustomParams custom_params = parse_custom_params(&argc, &argv);
+    gpt_params params = init_llama_cpp_params(argc, argv);
+
+    if(custom_params.output_writer_type == OutputWriterType::FULL){
+        printf("Extracting full probabilities\n");
+        return extract_probabilities<PositionFullResult>(params, custom_params);
+    } else if(custom_params.output_writer_type == OutputWriterType::TOP_K){
+        printf("Extracting top-k probabilities\n");
+        printf("Top-k: %d\n", custom_params.top_k);
+        return extract_probabilities<PositionTopResult>(params, custom_params);
+    }
 }
