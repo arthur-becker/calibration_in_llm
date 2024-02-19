@@ -1,6 +1,6 @@
 #include <zlib.h>
+#include <cstring>
 #include <vector>
-#include <string>
 #include <fstream>
 
 #include "utils/result_writer.h"

@@ -2,6 +2,7 @@
 #define INPUT_PROCESSOR_H
 
 #include <vector>
+#include <functional>
 
 class DataSpan {
 private :
