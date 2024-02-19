@@ -17,7 +17,14 @@ FetchContent_MakeAvailable(llama_cpp)
 
 # Build for extract_probabilities.cpp
 set(TARGET extract_probabilities)
-add_executable(${TARGET} src/commands/extract_probabilities.cpp src/utils/input_iterator.cpp src/utils/result_writer.cpp)
+add_executable(${TARGET} src/commands/extract_probabilities.cpp
+    src/utils/llama_cpp_helper.cpp
+    src/utils/input_iterator.cpp
+    src/utils/result_writer.cpp
+    src/utils/parse_custom_params.cpp
+    src/utils/position_result/position_result.cpp
+    src/utils/position_result/position_full_result.cpp
+    src/utils/position_result/position_top_result.cpp)
 target_include_directories(${TARGET} PRIVATE include)
 install(TARGETS ${TARGET} RUNTIME)
 target_link_libraries(${TARGET} PRIVATE common llama ZLIB::ZLIB ${CMAKE_THREAD_LIBS_INIT})

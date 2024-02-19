@@ -1,5 +1,19 @@
 # Calibration in quantized LLMs
 
+## How to build
+```bash
+mkdir build
+cd build
+cmake ..
+cmake --build . --config Release
+```
+
+## How to run tests
+```bash
+cd build/tests
+ctest -V
+```
+
 ## Results file format
 > Assumption: `sizeof(float) == sizeof(uint_32) == 4 bytes`
 
