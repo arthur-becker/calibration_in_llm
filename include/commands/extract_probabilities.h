@@ -25,6 +25,7 @@ private:
 
     std::vector<float> get_chunk_logits(Chunk chunk);
     void write_chunk_logits(std::vector<float> * logits, Chunk chunk);
+    void init_result_writers(std::string output_folder, OutputWriterType output_writer_type);
 
 public:
     ProbabilitiesExtractor(int argc, char ** argv, CustomParams custom_params);

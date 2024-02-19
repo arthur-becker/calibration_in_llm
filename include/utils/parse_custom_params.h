@@ -1,3 +1,7 @@
+#include <map>
+#include <string>
+#include <cstdint>
+
 #pragma once
 
 enum OutputWriterType {
@@ -8,6 +12,7 @@ enum OutputWriterType {
 struct CustomParams{
     OutputWriterType output_writer_type;
     uint16_t top_k;
+    std::string output_folder;
 };
 
 /// @brief This function converts the custom parameters from the command line arguments to a map.

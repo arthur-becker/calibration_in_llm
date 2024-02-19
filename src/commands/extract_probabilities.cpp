@@ -11,6 +11,7 @@
 #include <cstdio>
 #include <fstream>
 #include <cassert>
+#include <filesystem>
 
 #if defined(_MSC_VER)
 #pragma warning(disable: 4244 4267) // possible loss of data
@@ -50,20 +51,44 @@ void ProbabilitiesExtractor<T>::tokenize(std::string &prompt){
     this->input_iterator = new InputIterator<llama_token>(&this->tokens, this->getContextSize(), this->getBatchSize());
 }
 
+template <typename T>
+void ProbabilitiesExtractor<T>::init_result_writers(std::string output_folder, OutputWriterType output_writer_type){
+    // Assume that the executable is run from ./build directory
+    std::string output_folder_path = "../results/" + output_folder;
+    if (std::__fs::filesystem::exists(output_folder_path)) {
+        printf("Output folder %s already exists. Please remove it and try again, or change folder name\n", output_folder.c_str());
+        exit(1);
+    }
+    std::__fs::filesystem::create_directories(output_folder_path);
+    // TODO: check if it compiles for Linux. If not, try using std::filesystem
+
+    std::string * output_writer_type_str;
+    if(output_writer_type == OutputWriterType::FULL){
+        output_writer_type_str = new std::string("full");
+    } else if(output_writer_type == OutputWriterType::TOP_K){
+        output_writer_type_str = new std::string("top");
+    }
+    else{
+        printf("Unknown output writer type\n");
+        exit(1);
+    }
+
+    std::string logits_filename = output_folder_path + "/output." + *output_writer_type_str + ".logits";
+    this->logits_writer = new ResultWriter<T>(logits_filename);
+
+    std::string proba_filename = output_folder_path + "/output." + *output_writer_type_str + ".proba";
+    this->proba_writer = new ResultWriter<T>(proba_filename);
+}
+
 
 template <typename T>
 void ProbabilitiesExtractor<T>::run(){
     std::string prompt = this->getParams().prompt;
     this->tokenize(prompt);
 
-    std::string filename = "output.logits";
-    if(std::ifstream(filename).good()){
-        printf("File %s already exists. Please remove it and try again.\n", filename.c_str());
-        exit(1);
-    }   
-
-    this->logits_writer = new ResultWriter<T>(filename);
+    this->init_result_writers(this->custom_params.output_folder, this->custom_params.output_writer_type);
     this->logits_writer->openFile();
+    this->proba_writer->openFile();
 
     ChunkCallback chunk_callback = [&](Chunk chunk){
         printf("Processing chunk %d/%d\n", chunk.getIndex() + 1, input_iterator->getChunksNumber());
@@ -76,6 +101,7 @@ void ProbabilitiesExtractor<T>::run(){
     this->input_iterator->iterate(chunk_callback);
 
     this->logits_writer->closeFile();
+    this->proba_writer->closeFile();
 }
 
 template <typename T>

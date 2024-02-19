@@ -34,6 +34,7 @@ CustomParams parse_custom_params(int * argc, char *** argv){
     char * custom_params_names[] = {
         (char *) "--output-writer-type",
         (char *) "--write-top-k",
+        (char *) "--output-folder",
         NULL
     };
     auto custom_params_map = args_to_map(argc, argv, custom_params_names);
@@ -63,6 +64,13 @@ CustomParams parse_custom_params(int * argc, char *** argv){
     if (custom_params_map.find("--write-top-k") != custom_params_map.end()) {
         custom_params.top_k = std::atoi(custom_params_map["--write-top-k"].c_str());
     }
+
+    if (custom_params_map.find("--output-folder") == custom_params_map.end()) {
+        fprintf(stderr, "Error: --output-folder is required\n");
+        exit(1);
+    }
+    custom_params.output_folder = custom_params_map["--output-folder"];
+    
 
     return custom_params;
 }
