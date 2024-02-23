@@ -7,6 +7,7 @@
 #include "utils/parse_custom_params.h"
 #include "utils/llama_cpp_helper.h"
 #include "commands/extract_probabilities.h"
+#include "yaml-cpp/yaml.h"
 
 #include <cstdio>
 #include <fstream>
@@ -54,7 +55,7 @@ void ProbabilitiesExtractor<T>::tokenize(std::string &prompt){
 template <typename T>
 void ProbabilitiesExtractor<T>::init_result_writers(std::string output_folder, OutputWriterType output_writer_type){
     // Assume that the executable is run from ./build directory
-    std::string output_folder_path = "../results/" + output_folder;
+    std::string output_folder_path = this->getOutputFolderPath(output_folder);
     if (std::__fs::filesystem::exists(output_folder_path)) {
         printf("Output folder %s already exists. Please remove it and try again, or change folder name\n", output_folder.c_str());
         exit(1);
@@ -102,6 +103,43 @@ void ProbabilitiesExtractor<T>::run(){
 
     this->logits_writer->closeFile();
     this->proba_writer->closeFile();
+    this->save_run_info(this->getParams(), this->custom_params);
+    printf("Done\n");
+}
+
+template <typename T>
+std::string ProbabilitiesExtractor<T>::getOutputFolderPath(std::string output_folder){
+    return "../results/" + output_folder;
+}
+
+template <typename T>
+void ProbabilitiesExtractor<T>::save_run_info(gpt_params params, CustomParams custom_params){
+    std::string output_folder = custom_params.output_folder;
+    std::string output_folder_path = this->getOutputFolderPath(output_folder);
+    std::string run_info_filename = output_folder_path + "/info.yaml";
+
+    YAML::Node run_info;
+    run_info["model"] = params.model;
+    run_info["dataset_filename"] = params.prompt_file;
+    run_info["context_size"] = this->getContextSize();
+    run_info["batch_size"] = this->getBatchSize();
+    run_info["add_bos"] = this->shouldAddBOS();
+    run_info["vocab_size"] = this->getVocabSize();
+    run_info["num_tokens"] = this->tokens.size();
+    
+    // Create a subnode for the custom_params
+    YAML::Node output_writer;
+    output_writer["top_k"] = custom_params.top_k; // For top-k output writer
+    if(custom_params.output_writer_type == OutputWriterType::FULL){
+        output_writer["output_writer_type"] = "full";
+    } else if(custom_params.output_writer_type == OutputWriterType::TOP_K){
+        output_writer["output_writer_type"] = "top-k";
+    }
+    run_info["output_writer"] = output_writer;
+
+    std::ofstream fout(run_info_filename);
+    fout << run_info;
+    fout.close();
 }
 
 template <typename T>

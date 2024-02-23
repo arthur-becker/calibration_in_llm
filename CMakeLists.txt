@@ -5,15 +5,21 @@ project(calibration_in_llm)
 include(FetchContent)
 find_package(ZLIB REQUIRED)
 
-# Declare the external project
+# Llama.cpp
 FetchContent_Declare(
     llama_cpp
     GIT_REPOSITORY https://github.com/ggerganov/llama.cpp.git
     GIT_TAG        0353a1840134b24b07ab61fd4490192f28c4db6b
 )
-
-# Fetch and populate the content of the external project
 FetchContent_MakeAvailable(llama_cpp)
+
+# yaml-cpp
+FetchContent_Declare(
+    yaml-cpp
+    GIT_REPOSITORY https://github.com/jbeder/yaml-cpp.git
+    GIT_TAG        0.8.0
+)
+FetchContent_MakeAvailable(yaml-cpp)
 
 # Build for extract_probabilities.cpp
 set(TARGET extract_probabilities)
@@ -27,7 +33,7 @@ add_executable(${TARGET} src/commands/extract_probabilities.cpp
     src/utils/position_result/position_top_result.cpp)
 target_include_directories(${TARGET} PRIVATE include)
 install(TARGETS ${TARGET} RUNTIME)
-target_link_libraries(${TARGET} PRIVATE common llama ZLIB::ZLIB ${CMAKE_THREAD_LIBS_INIT})
+target_link_libraries(${TARGET} PRIVATE common llama ZLIB::ZLIB yaml-cpp::yaml-cpp ${CMAKE_THREAD_LIBS_INIT})
 target_compile_features(${TARGET} PRIVATE cxx_std_11)
 
 # Needed for metal on macOS
