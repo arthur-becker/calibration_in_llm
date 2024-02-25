@@ -6,6 +6,7 @@
 #include "utils/position_result/position_result.h"
 #include "utils/parse_custom_params.h"
 #include "utils/llama_cpp_helper.h"
+#include "utils/softmax.h"
 #include "commands/extract_probabilities.h"
 #include "yaml-cpp/yaml.h"
 
@@ -96,8 +97,7 @@ void ProbabilitiesExtractor<T>::run(){
         llama_kv_cache_clear(this->getContext());
 
         std::vector<float> chunk_logits = this->get_chunk_logits(chunk);
-        this->write_chunk_logits(&chunk_logits, chunk);
-        // TODO: calculate probabilities and save write them to another file
+        this->write_chunk_logits_and_proba(&chunk_logits, chunk);
     };
     this->input_iterator->iterate(chunk_callback);
 
@@ -178,7 +178,7 @@ std::vector<float> ProbabilitiesExtractor<T>::get_chunk_logits(Chunk chunk){
 }
 
 template <typename T>
-void ProbabilitiesExtractor<T>::write_chunk_logits(std::vector<float> * logits, Chunk chunk){
+void ProbabilitiesExtractor<T>::write_chunk_logits_and_proba(std::vector<float> * logits, Chunk chunk){
     int second_half_start = this->getContextSize() / 2;
     for(uint32_t i = second_half_start; i < this->getContextSize(); i++){
         float * first = (float *) logits->data() + i * this->getVocabSize(); 
@@ -189,18 +189,34 @@ void ProbabilitiesExtractor<T>::write_chunk_logits(std::vector<float> * logits, 
         uint32_t token_positon = chunk.getStart() + i; // Token position in the tokens vector
         uint16_t correct_token = tokens.at(token_positon);
 
-        PositionResult* position_output = nullptr;
-        if(this->custom_params.output_writer_type == OutputWriterType::FULL){
-            position_output = new PositionFullResult(token_data, correct_token);
-        } else if(this->custom_params.output_writer_type == OutputWriterType::TOP_K){
-            position_output = new PositionTopResult(token_data, correct_token, this->custom_params.top_k);
-        }
+        PositionFullResult logits_full(token_data, correct_token);
+        PositionFullResult proba_full = softmax(logits_full);
 
-        T* casted_position_output = dynamic_cast<T*>(position_output);
-        this->logits_writer->addPositionResult(*casted_position_output);
+        // Logits
+        PositionResult* position_logit = nullptr;
+        PositionResult* position_proba = nullptr;
+        if(this->custom_params.output_writer_type == OutputWriterType::FULL){
+            position_logit = &logits_full;
+            position_proba = &proba_full;
+        } else if(this->custom_params.output_writer_type == OutputWriterType::TOP_K){
+            position_logit = new PositionTopResult(
+                token_data, 
+                correct_token, 
+                this->custom_params.top_k);
+            position_proba = new PositionTopResult(
+                proba_full.getTokenData(), 
+                correct_token, 
+                this->custom_params.top_k);
+        }
+        T* casted_position_logit = dynamic_cast<T*>(position_logit);
+        T* casted_position_proba = dynamic_cast<T*>(position_proba);
+        
+        this->logits_writer->addPositionResult(*casted_position_logit);
+        this->proba_writer->addPositionResult(*casted_position_proba);
     }
 
     this->logits_writer->writeAndClear();
+    this->proba_writer->writeAndClear();
 }
 
 template class ProbabilitiesExtractor<PositionFullResult>;
