@@ -28,10 +28,16 @@ add_executable(test_checksum test_checksum.cpp
 add_executable(test_custom_params_parser test_custom_params_parser.cpp
     ../src/utils/parse_custom_params.cpp)
 
+add_executable(test_softmax test_softmax.cpp
+    ../src/utils/softmax.cpp
+    ../src/utils/position_result/position_result.cpp
+    ../src/utils/position_result/position_full_result.cpp)
+
 target_link_libraries(result_writer_test PRIVATE ZLIB::ZLIB ${CMAKE_THREAD_LIBS_INIT})
 target_link_libraries(test_top_result_data_structure PRIVATE ZLIB::ZLIB ${CMAKE_THREAD_LIBS_INIT})
 target_link_libraries(test_checksum PRIVATE ZLIB::ZLIB ${CMAKE_THREAD_LIBS_INIT})
 target_link_libraries(test_custom_params_parser PRIVATE ZLIB::ZLIB ${CMAKE_THREAD_LIBS_INIT})
+target_link_libraries(test_softmax PRIVATE ZLIB::ZLIB ${CMAKE_THREAD_LIBS_INIT})
 
 # Register the test
 enable_testing()
@@ -39,3 +45,4 @@ add_test(NAME TopResultDataStructureTest COMMAND test_top_result_data_structure)
 add_test(NAME ChecksumTest COMMAND test_checksum)
 add_test(NAME ResultWriterTest COMMAND result_writer_test)
 add_test(NAME CustomParamsParserTest COMMAND test_custom_params_parser)
+add_test(NAME SoftmaxTest COMMAND test_softmax)

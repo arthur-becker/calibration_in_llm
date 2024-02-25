@@ -30,7 +30,8 @@ add_executable(${TARGET} src/commands/extract_probabilities.cpp
     src/utils/parse_custom_params.cpp
     src/utils/position_result/position_result.cpp
     src/utils/position_result/position_full_result.cpp
-    src/utils/position_result/position_top_result.cpp)
+    src/utils/position_result/position_top_result.cpp
+    src/utils/softmax.cpp)
 target_include_directories(${TARGET} PRIVATE include)
 install(TARGETS ${TARGET} RUNTIME)
 target_link_libraries(${TARGET} PRIVATE common llama ZLIB::ZLIB yaml-cpp::yaml-cpp ${CMAKE_THREAD_LIBS_INIT})
