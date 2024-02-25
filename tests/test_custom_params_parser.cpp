@@ -43,7 +43,7 @@ void test_args_to_map(){
 }
 
 void test_parse_custom_params(){
-    int argc = 9;
+    int argc = 11;
     char ** argv = new char*[argc];
     argv[0] = (char*)"./extract_probabilities";
     argv[1] = (char*)"-m";
@@ -54,10 +54,13 @@ void test_parse_custom_params(){
     argv[6] = (char*)"file.txt";
     argv[7] = (char*)"--write-top-k";
     argv[8] = (char*)"50";
+    argv[9] = (char*)"--output-folder";
+    argv[10] = (char*)"/path/to/output/folder";
 
     CustomParams custom_params = parse_custom_params(&argc, &argv);
     assert(custom_params.output_writer_type == OutputWriterType::TOP_K);
     assert(custom_params.top_k == 50);
+    assert(custom_params.output_folder == (char*)"/path/to/output/folder");
     assert(compare_arrays(argc, argv, 5, new char*[5]{
         (char*)"./extract_probabilities",
         (char*)"-m",
