@@ -37,6 +37,20 @@ install(TARGETS ${TARGET} RUNTIME)
 target_link_libraries(${TARGET} PRIVATE common llama ZLIB::ZLIB yaml-cpp::yaml-cpp ${CMAKE_THREAD_LIBS_INIT})
 target_compile_features(${TARGET} PRIVATE cxx_std_11)
 
+# Build for generate_test_data.cpp
+set(TARGET generate_mock_data)
+add_executable(${TARGET} src/commands/generate_mock_data.cpp
+    src/utils/result_writer.cpp
+    src/utils/parse_custom_params.cpp
+    src/utils/position_result/position_result.cpp
+    src/utils/position_result/position_full_result.cpp
+    src/utils/position_result/position_top_result.cpp
+    src/utils/softmax.cpp)
+target_include_directories(${TARGET} PRIVATE include)
+install(TARGETS ${TARGET} RUNTIME)
+target_link_libraries(${TARGET} PRIVATE common llama ZLIB::ZLIB yaml-cpp::yaml-cpp ${CMAKE_THREAD_LIBS_INIT})
+target_compile_features(${TARGET} PRIVATE cxx_std_11)
+
 # Needed for metal on macOS
 configure_file(
     ${llama_cpp_SOURCE_DIR}/ggml-metal.metal
