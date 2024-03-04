@@ -8,10 +8,38 @@ cmake ..
 cmake --build . --config Release
 ```
 
+## How to run evaluation script
+
+First, navigate to the scripts folder:
+```bash
+cd scripts
+```
+
+Install dependencies:
+```bash
+pip3 install -r requirements.txt
+``` 
+
+Then, run the evaluation script
+```bash
+python3 evaluate.py <output_folder_name>
+```
+
+where `output_folder_name` should be the folder name in `results/` where the script `extract_probabilities.cpp` saves logits and probabilities
+
+
+
 ## How to run tests
+For C++ part:
 ```bash
 cd build/tests
 ctest -V
+```
+
+For Python:
+```bash
+cd scripts
+python -m unittest tests/result_reader_test.py
 ```
 
 ## Results file format
