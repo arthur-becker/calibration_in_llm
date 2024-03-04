@@ -11,7 +11,7 @@
 class PositionFullResult : public PositionResult {
 private:
     const std::vector<float> token_data;
-    int16_t correct_token;
+    uint16_t correct_token;
 public:
     PositionFullResult(std::vector<float> token_data, uint16_t correct_token);
     static PositionFullResult fromFile(std::ifstream * file);
