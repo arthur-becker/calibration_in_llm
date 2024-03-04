@@ -4,6 +4,7 @@ import numpy as np
 from position_result import PositionFullResult, PositionTopResult
 from decimal import Decimal, getcontext
 from softmax import softmax
+from evaluate import read_yaml
 
 class TestResultReader(TestCase):
     """
@@ -16,6 +17,12 @@ class TestResultReader(TestCase):
 
     def __init__(self, *args, **kwargs):
         super(TestResultReader, self).__init__(*args, **kwargs)
+        
+        # Read the little_endian from the info.yaml file
+        # Assumption: mock_writer_type_full and mock_writer_type_top have the same little_endian
+        path = f'./../results/mock_writer_type_full/'
+        run_info = read_yaml('./../results/mock_writer_type_full/info.yaml')
+        self.little_endian = run_info['little_endian']
 
         # For testing the full result
         self.logits1 = np.array([0.1, 0.2, 0.6, 0.3], dtype=np.float32)
@@ -24,6 +31,7 @@ class TestResultReader(TestCase):
         self.correct_token2 = 2
 
         # For testing the top result
+        #
         # The logit of the correct token is the first element in the token_data,
         # the rest of the elements are the logits of the top_n-1 tokens
         # in descending order
@@ -33,7 +41,7 @@ class TestResultReader(TestCase):
         
 
     def test_read_full_logits(self):
-        reader = ResultReader('./../results/mock_writer_type_full/output.full.logits', little_endian=True)
+        reader = ResultReader('./../results/mock_writer_type_full/output.full.logits', little_endian=self.little_endian)
         results = list(reader.read())
         self.assertEqual(len(results), 2)
         np.testing.assert_equal(results[0].token_data, self.logits1)
@@ -42,7 +50,7 @@ class TestResultReader(TestCase):
         self.assertEqual(results[1].correct_token, self.correct_token2)
 
     def test_read_top_logits(self):
-        reader = ResultReader('./../results/mock_writer_type_top/output.top.logits', little_endian=True)
+        reader = ResultReader('./../results/mock_writer_type_top/output.top.logits', little_endian=self.little_endian)
         results = list(reader.read())
         self.assertEqual(len(results), 2)
         self.assertEqual(results[0].n, self.top_n)
@@ -52,7 +60,7 @@ class TestResultReader(TestCase):
 
     def test_softmax(self):
         # The sum of the softmax of the logits should be 1
-        reader = ResultReader('./../results/mock_writer_type_full/output.full.logits', little_endian=True)
+        reader = ResultReader('./../results/mock_writer_type_full/output.full.logits', little_endian=self.little_endian)
         results = list(reader.read())
         
         for result in results:
@@ -63,7 +71,7 @@ class TestResultReader(TestCase):
         Tests the reading of the file with probabilities. Only the full result is tested
         """
         # The sum of the softmax of the logits should be 1
-        reader = ResultReader('./../results/mock_writer_type_full/output.full.proba', little_endian=True)
+        reader = ResultReader('./../results/mock_writer_type_full/output.full.proba', little_endian=self.little_endian)
         results = list(reader.read())
         
         logits_full_result1 = PositionFullResult(self.logits1, self.correct_token1)

@@ -9,6 +9,7 @@
 #include "utils/softmax.h"
 #include "commands/extract_probabilities.h"
 #include "yaml-cpp/yaml.h"
+#include "utils/endianness.h"
 
 #include <cstdio>
 #include <fstream>
@@ -126,6 +127,8 @@ void ProbabilitiesExtractor<T>::save_run_info(gpt_params params, CustomParams cu
     run_info["add_bos"] = this->shouldAddBOS();
     run_info["vocab_size"] = this->getVocabSize();
     run_info["num_tokens"] = this->tokens.size();
+
+    run_info["little_endian"] = isLittleEndian();
     
     // Create a subnode for the custom_params
     YAML::Node output_writer;

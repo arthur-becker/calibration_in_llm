@@ -38,7 +38,7 @@ if __name__ == '__main__':
     logits_filename = f'output.{output_writer_type}.logits'
     proba_filename = f'output.{output_writer_type}.proba'
 
-    little_endian = True  # TODO: store little_endian in the info.yaml file
+    little_endian = run_info['little_endian']
     logits_reader = ResultReader(path + logits_filename, little_endian)
     proba_reader = ResultReader(path + proba_filename, little_endian)
 

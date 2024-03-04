@@ -7,6 +7,7 @@
 #include "utils/result_writer.h"
 #include "utils/softmax.h"
 #include "utils/parse_custom_params.h"
+#include "utils/endianness.h"
 
 
 /// @brief Mock of the function from the extract_probabilities.cpp
@@ -24,6 +25,8 @@ void save_run_info(CustomParams custom_params){
     run_info["add_bos"] = true;
     run_info["vocab_size"] = 32000;
     run_info["num_tokens"] = 2; // counted from `main` function
+
+    run_info["little_endian"] = isLittleEndian();
     
     // Create a subnode for the custom_params
     YAML::Node output_writer;
