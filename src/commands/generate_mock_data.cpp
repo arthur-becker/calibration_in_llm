@@ -1,4 +1,5 @@
 #include <vector>
+#include <filesystem>
 #include <common.h>
 #include <yaml-cpp/yaml.h>
 
@@ -52,17 +53,16 @@ int main(int argc, char ** argv) {
     std::string output_folder_path_top = "../results/mock_writer_type_top";
 
     // Check existence of output folders and create them if they don't exist
-    // TODO: check if it compiles for Linux. If not, try using std::filesystem 
-    if (std::__fs::filesystem::exists(output_folder_path_full)) {
+    if (std::filesystem::exists(output_folder_path_full)) {
         printf("Output folder %s already exists. Please remove it and try again, or change folder name\n", output_folder_path_full.c_str());
         exit(1);
     }
-    std::__fs::filesystem::create_directories(output_folder_path_full);
-    if (std::__fs::filesystem::exists(output_folder_path_top)) {
+    std::filesystem::create_directories(output_folder_path_full);
+    if (std::filesystem::exists(output_folder_path_top)) {
         printf("Output folder %s already exists. Please remove it and try again, or change folder name\n", output_folder_path_top.c_str());
         exit(1);
     }
-    std::__fs::filesystem::create_directories(output_folder_path_top);
+    std::filesystem::create_directories(output_folder_path_top);
 
     // Mock data
     float token_data1[] = {0.1, 0.2, 0.6, 0.3};

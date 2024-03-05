@@ -58,12 +58,11 @@ template <typename T>
 void ProbabilitiesExtractor<T>::init_result_writers(std::string output_folder, OutputWriterType output_writer_type){
     // Assume that the executable is run from ./build directory
     std::string output_folder_path = this->getOutputFolderPath(output_folder);
-    if (std::__fs::filesystem::exists(output_folder_path)) {
+    if (std::filesystem::exists(output_folder_path)) {
         printf("Output folder %s already exists. Please remove it and try again, or change folder name\n", output_folder.c_str());
         exit(1);
     }
-    std::__fs::filesystem::create_directories(output_folder_path);
-    // TODO: check if it compiles for Linux. If not, try using std::filesystem
+    std::filesystem::create_directories(output_folder_path);
 
     std::string * output_writer_type_str;
     if(output_writer_type == OutputWriterType::FULL){
