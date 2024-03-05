@@ -21,21 +21,21 @@
 #endif
 
 template<typename T>
-void assert_output_writer_type(CustomParams custom_params, OutputWriterType expected_output_writer_type){
+void assert_output_writer_type(OutputWriterType expected){
     static_assert(std::is_base_of<PositionResult, T>::value, "T must be a subclass of PositionResult");
 
     // OutputWriterType::FULL -> PositionFullResult
-    assert((custom_params.output_writer_type != OutputWriterType::FULL || std::is_base_of<PositionFullResult, T>::value)); 
+    assert((expected != OutputWriterType::FULL || std::is_base_of_v<PositionFullResult, T>));
     
     // OutputWriterType::TOP_K -> PositionTopResult
-    assert((custom_params.output_writer_type != OutputWriterType::TOP_K || std::is_base_of<PositionTopResult, T>::value));
+    assert((expected != OutputWriterType::TOP_K || std::is_base_of_v<PositionTopResult, T>));
 
 }
 
 template <typename T>
 ProbabilitiesExtractor<T>::ProbabilitiesExtractor(int argc, char ** argv, CustomParams custom_params) : LlamaCppHelper(argc, argv){
     this->custom_params = custom_params;
-    assert_output_writer_type<T>(custom_params, custom_params.output_writer_type);
+    assert_output_writer_type<T>(custom_params.output_writer_type);
 }
 
 template <typename T>
@@ -64,22 +64,19 @@ void ProbabilitiesExtractor<T>::init_result_writers(std::string output_folder, O
     }
     std::filesystem::create_directories(output_folder_path);
 
-    std::string * output_writer_type_str;
+    std::string base_file_name = output_folder_path + "/output.";
     if(output_writer_type == OutputWriterType::FULL){
-        output_writer_type_str = new std::string("full");
+        base_file_name += "full";
     } else if(output_writer_type == OutputWriterType::TOP_K){
-        output_writer_type_str = new std::string("top");
+        base_file_name += "top";
     }
     else{
         printf("Unknown output writer type\n");
         exit(1);
     }
 
-    std::string logits_filename = output_folder_path + "/output." + *output_writer_type_str + ".logits";
-    this->logits_writer = new ResultWriter<T>(logits_filename);
-
-    std::string proba_filename = output_folder_path + "/output." + *output_writer_type_str + ".proba";
-    this->proba_writer = new ResultWriter<T>(proba_filename);
+    this->logits_writer = ResultWriter<T>(base_file_name +  ".logits");
+    this->proba_writer = ResultWriter<T>(base_file_name +  ".proba");
 }
 
 
@@ -89,8 +86,8 @@ void ProbabilitiesExtractor<T>::run(){
     this->tokenize(prompt);
 
     this->init_result_writers(this->custom_params.output_folder, this->custom_params.output_writer_type);
-    this->logits_writer->openFile();
-    this->proba_writer->openFile();
+    this->logits_writer.openFile();
+    this->proba_writer.openFile();
 
     ChunkCallback chunk_callback = [&](Chunk chunk){
         printf("Processing chunk %d/%d\n", chunk.getIndex() + 1, input_iterator->getChunksNumber());
@@ -101,8 +98,8 @@ void ProbabilitiesExtractor<T>::run(){
     };
     this->input_iterator->iterate(chunk_callback);
 
-    this->logits_writer->closeFile();
-    this->proba_writer->closeFile();
+    this->logits_writer.closeFile();
+    this->proba_writer.closeFile();
     this->save_run_info(this->getParams(), this->custom_params);
     printf("Done\n");
 }
@@ -195,30 +192,23 @@ void ProbabilitiesExtractor<T>::write_chunk_logits_and_proba(std::vector<float> 
         PositionFullResult proba_full = softmax(logits_full);
 
         // Logits
-        PositionResult* position_logit = nullptr;
-        PositionResult* position_proba = nullptr;
-        if(this->custom_params.output_writer_type == OutputWriterType::FULL){
-            position_logit = &logits_full;
-            position_proba = &proba_full;
-        } else if(this->custom_params.output_writer_type == OutputWriterType::TOP_K){
-            position_logit = new PositionTopResult(
-                token_data, 
-                correct_token, 
-                this->custom_params.top_k);
-            position_proba = new PositionTopResult(
-                proba_full.getTokenData(), 
-                correct_token, 
-                this->custom_params.top_k);
+        if constexpr (std::is_base_of_v<PositionFullResult, T>) {
+            this->logits_writer.addPositionResult(logits_full);
+            this->proba_writer.addPositionResult(proba_full);
+        } else if constexpr (std::is_base_of_v<PositionTopResult, T>){
+            this->logits_writer.addPositionResult(PositionTopResult(
+                token_data,
+                correct_token,
+                this->custom_params.top_k));
+            this->proba_writer.addPositionResult(PositionTopResult(
+                proba_full.getTokenData(),
+                correct_token,
+                this->custom_params.top_k));
         }
-        T* casted_position_logit = dynamic_cast<T*>(position_logit);
-        T* casted_position_proba = dynamic_cast<T*>(position_proba);
-        
-        this->logits_writer->addPositionResult(*casted_position_logit);
-        this->proba_writer->addPositionResult(*casted_position_proba);
     }
 
-    this->logits_writer->writeAndClear();
-    this->proba_writer->writeAndClear();
+    this->logits_writer.writeAndClear();
+    this->proba_writer.writeAndClear();
 }
 
 template class ProbabilitiesExtractor<PositionFullResult>;
