@@ -105,7 +105,7 @@ void ProbabilitiesExtractor<T>::run(){
 }
 
 template <typename T>
-std::string ProbabilitiesExtractor<T>::getOutputFolderPath(std::string output_folder){
+std::string ProbabilitiesExtractor<T>::getOutputFolderPath(std::string output_folder) const{
     return "../results/" + output_folder;
 }
 

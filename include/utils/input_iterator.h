@@ -13,13 +13,13 @@ private :
 public:
     DataSpan(int index, int start, int end);
 
-    int getIndex();
+    int getIndex() const;
 
-    int getStart();
+    int getStart() const;
 
-    int getEnd();
+    int getEnd() const;
 
-    int getSize();
+    int getSize() const;
 };
 
 class Chunk : public DataSpan {

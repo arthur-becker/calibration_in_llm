@@ -13,19 +13,19 @@ DataSpan::DataSpan(int index, int start, int end){
     this->end = end;
 }
 
-int DataSpan::getIndex(){
+int DataSpan::getIndex() const{
     return this->index;
 }
 
-int DataSpan::getStart(){
+int DataSpan::getStart() const{
     return this->start;
 }
 
-int DataSpan::getEnd(){
+int DataSpan::getEnd() const{
     return this->end;
 }
 
-int DataSpan::getSize(){
+int DataSpan::getSize() const{
     return this->end - this->start;
 }
 

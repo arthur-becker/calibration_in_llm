@@ -30,10 +30,10 @@ public:
     llama_context * getContext();
     llama_model * getModel();
     gpt_params getParams();
-    int getContextSize();
-    int getBatchSize();
-    int getVocabSize();
-    bool shouldAddBOS();
+    int getContextSize() const;
+    int getBatchSize() const;
+    int getVocabSize() const;
+    bool shouldAddBOS() const;
 
     llama_token getTokenBOS();
 };
