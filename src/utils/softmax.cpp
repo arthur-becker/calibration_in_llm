@@ -10,7 +10,7 @@ PositionFullResult softmax(const PositionFullResult & logits) {
     std::vector<float> logits_vector = logits.getTokenData();
     std::vector<float> proba_vector(logits_vector.size());
 
-    assert(logits_vector.size() > 0);
+    assert(!logits_vector.empty());
 
     float max_logit = *std::max_element(logits_vector.begin(), logits_vector.end());
 

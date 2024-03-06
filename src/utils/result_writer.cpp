@@ -1,5 +1,6 @@
 #include <zlib.h>
 #include <cstring>
+#include <utility>
 #include <vector>
 #include <fstream>
 
@@ -10,7 +11,7 @@
 
 
 template<typename T>
-ResultWriter<T>::ResultWriter(std::string filename) : filename(filename) {}
+ResultWriter<T>::ResultWriter(std::string filename) : filename(std::move(filename)) {}
 
 template<typename T>
 void ResultWriter<T>::openFile() {
@@ -29,12 +30,12 @@ void ResultWriter<T>::closeFile() {
 
 template<typename T>
 void ResultWriter<T>::addPositionResult(T position_result) {
-    this->result.push_back(position_result);
+    this->result.push_back(std::move(position_result));
 }
 
 template<typename T>
 void ResultWriter<T>::writeAndClear() {
-    for (T position_result : this->result) {
+    for (const T& position_result : this->result) {
         const std::vector<uint8_t> data = position_result.getBytes();
         this->file.write(reinterpret_cast<const char*>(data.data()), data.size());
 

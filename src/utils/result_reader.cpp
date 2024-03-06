@@ -8,7 +8,7 @@
 #include <string>
 #include <fstream>
 
-void print_result(PositionFullResult result) {
+void print_result(const PositionFullResult& result) {
     printf("\nPosition result:\n");
     printf("Correct token: %d\n", result.getCorrectToken());
     printf("Token data: ");
@@ -20,7 +20,7 @@ void print_result(PositionFullResult result) {
 }
 
 template <typename T>
-std::vector<T> ResultReader<T>::read_result(std::string file_name) {
+std::vector<T> ResultReader<T>::read_result(const std::string& file_name) {
     std::vector<T> result;
     std::ifstream file(file_name, std::ios::binary);
 

@@ -27,7 +27,7 @@ private:
     void write_chunk_logits_and_proba(std::vector<float> * logits, Chunk chunk);
     void init_result_writers(std::string output_folder, OutputWriterType output_writer_type);
     void save_run_info(gpt_params params, CustomParams custom_params);
-    std::string getOutputFolderPath(std::string output_folder) const;
+    std::string getOutputFolderPath(const std::string& output_folder) const;
 
 public:
     ProbabilitiesExtractor(int argc, char ** argv, CustomParams custom_params);

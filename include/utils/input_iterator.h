@@ -69,12 +69,12 @@ public:
 
     /// @brief Iterates over all chunks of the input
     /// @param callback is called for every `Chunk`
-    void iterate(ChunkCallback callback);
+    void iterate(const ChunkCallback& callback);
 
     /// @brief Iterates over all batches in the `chunk`
     /// @param callback is called for every `Batch`
     /// @param chunk Chunk that is splitted into batches
-    void iterate(BatchCallback callback, Chunk chunk);
+    void iterate(const BatchCallback& callback, Chunk chunk);
 
     std::vector<T> * getInput();
 };

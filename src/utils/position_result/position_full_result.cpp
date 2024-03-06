@@ -1,9 +1,10 @@
 
 #include <fstream>
+#include <utility>
 
 #include "utils/position_result/position_full_result.h"
 
-PositionFullResult::PositionFullResult(std::vector<float> token_data, uint16_t correct_token) : token_data(token_data), correct_token(correct_token) {}
+PositionFullResult::PositionFullResult(std::vector<float> token_data, uint16_t correct_token) : token_data(std::move(token_data)), correct_token(correct_token) {}
 
 PositionFullResult PositionFullResult::fromFile(std::ifstream * file){
     // Assumption for consistency of checksum calculation

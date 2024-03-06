@@ -105,7 +105,7 @@ void ProbabilitiesExtractor<T>::run(){
 }
 
 template <typename T>
-std::string ProbabilitiesExtractor<T>::getOutputFolderPath(std::string output_folder) const{
+std::string ProbabilitiesExtractor<T>::getOutputFolderPath(const std::string& output_folder) const{
     return "../results/" + output_folder;
 }
 
@@ -193,11 +193,11 @@ void ProbabilitiesExtractor<T>::write_chunk_logits_and_proba(std::vector<float> 
 
         // Logits
         if constexpr (std::is_base_of_v<PositionFullResult, T>) {
-            this->logits_writer.addPositionResult(logits_full);
-            this->proba_writer.addPositionResult(proba_full);
+            this->logits_writer.addPositionResult(std::move(logits_full));
+            this->proba_writer.addPositionResult(std::move(proba_full));
         } else if constexpr (std::is_base_of_v<PositionTopResult, T>){
             this->logits_writer.addPositionResult(PositionTopResult(
-                token_data,
+                std::move(token_data),
                 correct_token,
                 this->custom_params.top_k));
             this->proba_writer.addPositionResult(PositionTopResult(
