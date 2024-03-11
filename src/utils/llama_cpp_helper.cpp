@@ -32,19 +32,19 @@ gpt_params LlamaCppHelper::getParams(){
     return this->params;
 }
 
-int LlamaCppHelper::getContextSize(){
+int LlamaCppHelper::getContextSize() const{
     return this->n_ctx;
 }
 
-int LlamaCppHelper::getBatchSize(){
+int LlamaCppHelper::getBatchSize() const{
     return this->n_batch;
 }
 
-int LlamaCppHelper::getVocabSize(){
+int LlamaCppHelper::getVocabSize() const{
     return this->n_vocab;
 }
 
-bool LlamaCppHelper::shouldAddBOS(){
+bool LlamaCppHelper::shouldAddBOS() const{
     return this->add_bos;
 }
 

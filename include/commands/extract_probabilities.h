@@ -20,14 +20,14 @@ private:
 
     InputIterator<llama_token> * input_iterator;
     std::vector<llama_token> tokens;
-    ResultWriter<T> * logits_writer;
-    ResultWriter<T> * proba_writer;
+    ResultWriter<T> logits_writer = {""};
+    ResultWriter<T> proba_writer = {""};
 
     std::vector<float> get_chunk_logits(Chunk chunk);
     void write_chunk_logits_and_proba(std::vector<float> * logits, Chunk chunk);
     void init_result_writers(std::string output_folder, OutputWriterType output_writer_type);
     void save_run_info(gpt_params params, CustomParams custom_params);
-    std::string getOutputFolderPath(std::string output_folder);
+    std::string getOutputFolderPath(const std::string& output_folder) const;
 
 public:
     ProbabilitiesExtractor(int argc, char ** argv, CustomParams custom_params);

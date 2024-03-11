@@ -13,19 +13,19 @@ DataSpan::DataSpan(int index, int start, int end){
     this->end = end;
 }
 
-int DataSpan::getIndex(){
+int DataSpan::getIndex() const{
     return this->index;
 }
 
-int DataSpan::getStart(){
+int DataSpan::getStart() const{
     return this->start;
 }
 
-int DataSpan::getEnd(){
+int DataSpan::getEnd() const{
     return this->end;
 }
 
-int DataSpan::getSize(){
+int DataSpan::getSize() const{
     return this->end - this->start;
 }
 
@@ -58,7 +58,7 @@ int InputIterator<T>::getBatchesNumber(){
 }
 
 template <typename T>
-void InputIterator<T>::iterate(ChunkCallback callback){
+void InputIterator<T>::iterate(const ChunkCallback& callback){
         for (int i = 0; i < this->n_chunk; i++) {
             const int start = i * this->n_ctx;
             const int end = start + this->n_ctx;
@@ -68,7 +68,7 @@ void InputIterator<T>::iterate(ChunkCallback callback){
 }
 
 template <typename T>
-void InputIterator<T>::iterate(BatchCallback callback, Chunk chunk){
+void InputIterator<T>::iterate(const BatchCallback& callback, Chunk chunk){
     for (int i = 0; i < this->num_batches; i++) {
         const int start = chunk.getStart() + i * this->n_batch;
         const int batch_size  = std::min(chunk.getEnd() - start, this->n_batch);
