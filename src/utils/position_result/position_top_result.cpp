@@ -1,5 +1,6 @@
 #include <cassert>
 #include <fstream>
+#include <algorithm>
 
 #include "utils/position_result/position_top_result.h"
 

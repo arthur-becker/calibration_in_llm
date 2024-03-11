@@ -1,5 +1,5 @@
 cmake_minimum_required(VERSION 3.11)
-set(CMAKE_CXX_STANDARD 11)
+set(CMAKE_CXX_STANDARD 17)
 project(calibration_in_llm)
 
 include(FetchContent)
@@ -36,7 +36,7 @@ add_executable(${TARGET} src/commands/extract_probabilities.cpp
 target_include_directories(${TARGET} PRIVATE include)
 install(TARGETS ${TARGET} RUNTIME)
 target_link_libraries(${TARGET} PRIVATE common llama ZLIB::ZLIB yaml-cpp::yaml-cpp ${CMAKE_THREAD_LIBS_INIT})
-target_compile_features(${TARGET} PRIVATE cxx_std_11)
+target_compile_features(${TARGET} PRIVATE cxx_std_17)
 
 # Build for generate_test_data.cpp
 set(TARGET generate_mock_data)
@@ -51,7 +51,7 @@ add_executable(${TARGET} src/commands/generate_mock_data.cpp
 target_include_directories(${TARGET} PRIVATE include)
 install(TARGETS ${TARGET} RUNTIME)
 target_link_libraries(${TARGET} PRIVATE common llama ZLIB::ZLIB yaml-cpp::yaml-cpp ${CMAKE_THREAD_LIBS_INIT})
-target_compile_features(${TARGET} PRIVATE cxx_std_11)
+target_compile_features(${TARGET} PRIVATE cxx_std_17)
 
 # Needed for metal on macOS
 configure_file(
