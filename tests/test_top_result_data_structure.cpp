@@ -2,6 +2,7 @@
 #include <iostream>
 #include <vector>
 #include <cassert>
+#include <algorithm>
 
 #include "utils/position_result/position_top_result.h"
 

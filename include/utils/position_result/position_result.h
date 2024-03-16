@@ -9,7 +9,7 @@ public:
     virtual std::vector<std::uint8_t> getBytes() const = 0;
 
     // @brief Returns the number of bytes that the PositionResult object occupies in memory when serialized with `getBytes()`
-    virtual std::uint32_t countBytes() const = 0;
+    virtual std::size_t countBytes() const = 0;
     std::uint32_t getChecksum() const;
     virtual ~PositionResult() = default;
 };
