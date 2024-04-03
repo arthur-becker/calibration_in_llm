@@ -43,7 +43,12 @@ std::vector<uint8_t> PositionFullResult::getBytes() const {
     // Assumption for consistency of checksum calculation
     static_assert(sizeof(float) == sizeof(uint32_t), "sizeof(float) != sizeof(uint32_t)");
 
+    // Check if this->token_data.size() fits into uint16_t
+    if (this->token_data.size() > UINT16_MAX) {
+        throw std::runtime_error("Token data size exceeds uint16_t");
+    }
     uint16_t n = this->token_data.size(); // vocabulary size
+
     std::vector<uint8_t> data(this->countBytes()); // save the number of tokens, the correct token and the token data
     auto start_n_bytes = data.begin();
     auto start_correct_token = start_n_bytes + sizeof(correct_token);
@@ -74,7 +79,7 @@ std::size_t PositionFullResult::countBytes() const {
     static_assert(sizeof(float) == sizeof(uint32_t), "sizeof(float) != sizeof(uint32_t)");
 
     std::size_t float_size = sizeof(float);
-    std::size_t n = this->token_data.size(); // vocabulary size
+    std::uint16_t n = this->token_data.size(); // vocabulary size
     std::size_t bytes_number = sizeof(n) + sizeof(this->correct_token) + n * float_size;
 
     return bytes_number;
