@@ -54,7 +54,6 @@ std::vector<uint8_t> PositionTopResult::getBytes() const {
     // Assumption for consistency of checksum calculation
     static_assert(sizeof(float) == sizeof(uint32_t), "sizeof(float) != sizeof(uint32_t)"); 
 
-    uint8_t float_size = sizeof(float);
     std::vector<uint8_t> data(
         countBytes()); // save the number of tokens and the token data
     auto start_n_bytes = data.begin();
@@ -65,11 +64,9 @@ std::vector<uint8_t> PositionTopResult::getBytes() const {
     std::copy(n_bytes, n_bytes + sizeof(this->n), start_n_bytes);
 
     // 2. Save token data
-    for (float token : this->token_data) {
-        uint8_t * token_bytes = reinterpret_cast<uint8_t*>(&token);
-        std::copy(token_bytes, token_bytes + float_size, start_token_data);
-        start_token_data += float_size;
-    }
+    std::copy_n(reinterpret_cast<const uint8_t*>(token_data.data()),
+                token_data.size() * sizeof(float),
+                start_token_data);
 
     return data;
 }
@@ -78,12 +75,12 @@ uint16_t PositionTopResult::getN() const {
     return this->n;
 }
 
-uint32_t PositionTopResult::countBytes() const {
+std::size_t PositionTopResult::countBytes() const {
     // Assumption for consistency of checksum calculation
-    static_assert(sizeof(float) == sizeof(uint32_t), "sizeof(float) != sizeof(uint32_t)"); 
+    static_assert(sizeof(float) == sizeof(uint32_t), "sizeof(float) != sizeof(uint32_t)");
 
-    uint8_t float_size = sizeof(float);
-    uint16_t bytes_number = sizeof(this->n) + this->n * float_size;
+    std::size_t float_size = sizeof(float);
+    std::size_t bytes_number = sizeof(this->n) + this->n * float_size;
 
     return bytes_number;
 }

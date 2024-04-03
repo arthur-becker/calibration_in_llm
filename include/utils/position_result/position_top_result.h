@@ -19,6 +19,6 @@ public:
 
     std::vector<float> getTokenData() const override;
     std::vector<uint8_t> getBytes() const override;
-    uint32_t countBytes() const override;
+    std::size_t countBytes() const override;
     uint16_t getN() const;
 };
