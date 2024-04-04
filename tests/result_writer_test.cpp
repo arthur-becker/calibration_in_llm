@@ -75,7 +75,7 @@ int main() {
         std::vector<float>(token_data2, token_data2 + 6),
         2
     );
-    PositionFullResult full_results[] = {full_result1, full_result1};
+    PositionFullResult full_results[] = {full_result1, full_result2};
     uint16_t full_results_size = sizeof(full_results) / sizeof(full_results[0]);
     test_result_writer(full_results, full_results_size);
     printf("ResultWriter test for `PositionFullResult` passed!\n");
