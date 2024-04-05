@@ -143,7 +143,7 @@ void ProbabilitiesExtractor<T>::save_run_info(gpt_params params, CustomParams cu
 
 template <typename T>
 std::vector<float> ProbabilitiesExtractor<T>::get_chunk_logits(Chunk chunk){
-    std::vector<float> chunk_logits(chunk.getSize() * this->getVocabSize());
+    std::vector<float> chunk_logits;
 
     BatchCallback batch_callback = [&](Batch batch){
         // save original token and restore it after eval
