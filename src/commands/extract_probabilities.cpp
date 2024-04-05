@@ -179,14 +179,21 @@ std::vector<float> ProbabilitiesExtractor<T>::get_chunk_logits(Chunk chunk){
 template <typename T>
 void ProbabilitiesExtractor<T>::write_chunk_logits_and_proba(std::vector<float> * logits, Chunk chunk){
     int second_half_start = this->getContextSize() / 2;
-    for(uint32_t i = second_half_start; i < this->getContextSize(); i++){
+    for(uint32_t i = second_half_start; i < this->getContextSize() - 1; i++){
+        // llama.cpp uses the logits of the current position to calculate the probabilities of the next token.
+        // The logits of the last position in the chunk are not used to calculate the probabilities of the next token.
+        // Therefore, we skip the last position and count only to `this->getContextSize() - 1`
+
         float * first = (float *) logits->data() + i * this->getVocabSize(); 
         float * last = first + this->getVocabSize(); 
 
         std::vector<float> token_data(first, last);
 
-        uint32_t token_positon = chunk.getStart() + i; // Token position in the tokens vector
-        uint16_t correct_token = tokens.at(token_positon);
+        uint32_t current_position = chunk.getStart() + i; // Current position in the input vector
+
+        // Reminder: the logits of the current positions are used to calculate the probabilities of the next token
+        // Therefore, the correct token is the token at position `token_positon + 1`
+        uint16_t correct_token = tokens.at(current_position + 1);
 
         PositionFullResult logits_full(token_data, correct_token);
         PositionFullResult proba_full = softmax(logits_full);
