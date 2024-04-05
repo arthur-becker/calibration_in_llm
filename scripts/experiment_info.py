@@ -33,7 +33,7 @@ def get_experiment_info(output_folder_name: str) -> dict:
     logits_reader = ResultReader(path + logits_filename, little_endian)
     proba_reader = ResultReader(path + proba_filename, little_endian)
 
-    return logits_reader, proba_reader, output_writer_type
+    return logits_reader, proba_reader, output_writer_type, path
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser(description='Evaluate a model')
@@ -42,8 +42,9 @@ if __name__ == '__main__':
         help='The name of the folder in `results/` where C++ program stored the output')
     args = parser.parse_args()
 
-    logits_reader, proba_reader, output_writer_type = get_experiment_info(args.output_folder)
+    logits_reader, proba_reader, output_writer_type, path = get_experiment_info(args.output_folder)
     print("\nResults from get_experiment_info():")
     print(f'logits_reader: {logits_reader}')
     print(f'proba_reader: {proba_reader}')
     print(f'output_writer_type: {output_writer_type}')
+    print(f'path: {path}')
