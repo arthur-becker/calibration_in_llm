@@ -1,6 +1,6 @@
 
 import argparse
-from experiment_info import get_experiment_info
+from experiment_info import RunInfo
 from position_result import PositionResult
 from matplotlib import pyplot as plt
 from convert import position_result_to_numpy
@@ -42,15 +42,14 @@ def visualize_calibration_curve(y_true, y_prob, show=False, save=True, save_name
 if __name__ == '__main__':
     # Preparation
     parser = argparse.ArgumentParser(description='Visualize the output data')
-    parser.add_argument('output_folder', 
+    parser.add_argument('llama_cpp_run', 
         type=str, 
-        help='The name of the folder in `results/` where C++ program stored the output')
+        help='The name of the folder in `results/` where llama.cpp stored the output')
     args = parser.parse_args()
 
-    output_folder = args.output_folder
-    logits_reader, proba_reader, output_writer_type, path = get_experiment_info(output_folder)
+    run_info = RunInfo(args.llama_cpp_run)
 
-    proba_position_result_list : PositionResult = list(proba_reader.read())
+    proba_position_result_list : PositionResult = list(run_info.proba_reader.read())
     y_true, y_prob = position_result_to_numpy(proba_position_result_list)
 
     # Visualization

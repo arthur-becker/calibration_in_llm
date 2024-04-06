@@ -7,33 +7,28 @@ def read_yaml(path):
     with open(path, 'r') as file:
         return yaml.safe_load(file)
 
-def get_experiment_info(output_folder_name: str) -> dict:
-    """
-    Read the experiment information from the info.yaml file.
-    """
+class RunInfo:
+    def __init__(self, output_folder_name: str):
+        self.path = f'./../results/{output_folder_name}/'
+        if not os.path.exists(self.path):
+            raise ValueError(f'Path {self.path} does not exist')
+        
+        run_info = read_yaml(self.path + 'info.yaml')
+        
+        self.output_writer_type = None
+        if run_info['output_writer']['output_writer_type'] == 'top-k':
+            output_writer_type = 'top'
+        elif run_info['output_writer']['output_writer_type'] == 'full':
+            output_writer_type = 'full'
+        else:
+            raise ValueError(f'Unknown output_writer_type: {run_info["output_writer"]["output_writer_type"]}')
 
-    path = f'./../results/{output_folder_name}/'
-    if not os.path.exists(path):
-        raise ValueError(f'Path {path} does not exist')
-    
-    run_info = read_yaml(path + 'info.yaml')
-    
-    output_writer_type = None
-    if run_info['output_writer']['output_writer_type'] == 'top-k':
-        output_writer_type = 'top'
-    elif run_info['output_writer']['output_writer_type'] == 'full':
-        output_writer_type = 'full'
-    else:
-        raise ValueError(f'Unknown output_writer_type: {run_info["output_writer"]["output_writer_type"]}')
+        logits_filename = f'output.{output_writer_type}.logits'
+        proba_filename = f'output.{output_writer_type}.proba'
+        self.little_endian = run_info['little_endian']
 
-    logits_filename = f'output.{output_writer_type}.logits'
-    proba_filename = f'output.{output_writer_type}.proba'
-    little_endian = run_info['little_endian']
-
-    logits_reader = ResultReader(path + logits_filename, little_endian)
-    proba_reader = ResultReader(path + proba_filename, little_endian)
-
-    return logits_reader, proba_reader, output_writer_type, path
+        self.logits_reader = ResultReader(self.path + logits_filename, self.little_endian)
+        self.proba_reader = ResultReader(self.path + proba_filename, self.little_endian)
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser(description='Evaluate a model')
@@ -42,9 +37,9 @@ if __name__ == '__main__':
         help='The name of the folder in `results/` where C++ program stored the output')
     args = parser.parse_args()
 
-    logits_reader, proba_reader, output_writer_type, path = get_experiment_info(args.output_folder)
+    run_info = RunInfo(args.output_folder)
     print("\nResults from get_experiment_info():")
-    print(f'logits_reader: {logits_reader}')
-    print(f'proba_reader: {proba_reader}')
-    print(f'output_writer_type: {output_writer_type}')
-    print(f'path: {path}')
+    print(f'logits_reader: {run_info.logits_reader}')
+    print(f'proba_reader: {run_info.proba_reader}')
+    print(f'output_writer_type: {run_info.output_writer_type}')
+    print(f'path: {run_info.path}')
