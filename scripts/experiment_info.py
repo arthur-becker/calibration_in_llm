@@ -17,14 +17,14 @@ class RunInfo:
         
         self.output_writer_type = None
         if run_info['output_writer']['output_writer_type'] == 'top-k':
-            output_writer_type = 'top'
+            self.output_writer_type = 'top'
         elif run_info['output_writer']['output_writer_type'] == 'full':
-            output_writer_type = 'full'
+            self.output_writer_type = 'full'
         else:
             raise ValueError(f'Unknown output_writer_type: {run_info["output_writer"]["output_writer_type"]}')
 
-        logits_filename = f'output.{output_writer_type}.logits'
-        proba_filename = f'output.{output_writer_type}.proba'
+        logits_filename = f'output.{self.output_writer_type}.logits'
+        proba_filename = f'output.{self.output_writer_type}.proba'
         self.little_endian = run_info['little_endian']
 
         self.logits_reader = ResultReader(self.path + logits_filename, self.little_endian)
