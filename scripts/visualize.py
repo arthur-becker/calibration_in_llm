@@ -50,7 +50,7 @@ if __name__ == '__main__':
     run_info = RunInfo(args.llama_cpp_run)
 
     proba_position_result_list : PositionResult = list(run_info.proba_reader.read())
-    y_true, y_prob = position_result_to_numpy(proba_position_result_list)
+    y_true, y_prob, size = position_result_to_numpy(proba_position_result_list)
 
     # Visualization
     print('\n\nVisualizing the output data...')

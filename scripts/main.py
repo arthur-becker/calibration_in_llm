@@ -5,6 +5,8 @@ import os
 from experiment_info import RunInfo
 from convert import position_result_to_numpy
 from evaluate import evaluate
+import numpy as np
+from normalize import normalize, denormalize
 
 def read_args():
     parser = argparse.ArgumentParser(description='Evaluate a model')
@@ -34,7 +36,10 @@ if __name__ == "__main__":
     print('1.1. Loading the calibration set...')
     calibration_set_run = RunInfo(args.calibration_set_run)
     position_result_proba = list(calibration_set_run.proba_reader.read())
-    y_true_cal, y_prob_cal = position_result_to_numpy(position_result_proba)
+    y_true_cal, y_prob_cal, position_size_cal = position_result_to_numpy(position_result_proba)
+    y_prob_cal = normalize(y_prob_cal, position_size_cal)
+
+    print('1.2. Evaluating...')
     save_path = f'./../results/{args.output_folder}/uncalibrated_calibration_set_'
     ppl, brier_score = evaluate(y_true_cal, y_prob_cal, save_path)
     print(f'Calibraion set (uncalibrated): Perplexity={ppl}, Brier score={brier_score}')
@@ -44,7 +49,10 @@ if __name__ == "__main__":
     print('2.1. Loading the test set...')
     test_set_run = RunInfo(args.test_set_run)
     position_result_proba = list(test_set_run.proba_reader.read())
-    y_true_test, y_prob_test = position_result_to_numpy(position_result_proba)
+    y_true_test, y_prob_test, position_size_test = position_result_to_numpy(position_result_proba)
+    y_prob_test = normalize(y_prob_test, position_size_test)
+
+    print('2.2. Evaluating...')
     save_path = f'./../results/{args.output_folder}/uncalibrated_test_set_'
     ppl, brier_score = evaluate(y_true_test, y_prob_test, save_path)
     print(f'Test set (uncalibrated): Perplexity={ppl}, Brier score={brier_score}')
