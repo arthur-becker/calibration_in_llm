@@ -5,6 +5,7 @@ import os
 from experiment_info import RunInfo
 from convert import position_result_to_numpy
 from evaluate import evaluate
+from sklearn.isotonic import IsotonicRegression
 import numpy as np
 from normalize import normalize, denormalize
 
@@ -57,8 +58,33 @@ if __name__ == "__main__":
     ppl, brier_score = evaluate(y_true_test, y_prob_test, save_path)
     print(f'Test set (uncalibrated): Perplexity={ppl}, Brier score={brier_score}')
 
-    # TODO: Calibrate with isotonic regression
+    # 3. Calibrate with isotonic regression
+    print('3. Calibrating with isotonic regression...')
+    print('3.1. Fitting the isotonic regression model...')
+    X_probs_cal = y_prob_cal.reshape(-1, 1)
+    min_prob = np.min(X_probs_cal) # Set minimum value to avoid division by 0 when calculating perplexity
+    iso_regressor = IsotonicRegression(out_of_bounds='clip', y_min=min_prob, y_max=1)
+    iso_regressor.fit(X_probs_cal, y_true_cal) # X_probs_cal.ravel() ?
 
+    print('3.2. Calibrating the calibration set...')
+    y_prob_cal_transformed = iso_regressor.transform(X_probs_cal)
+    y_prob_cal_transformed = denormalize(y_prob_cal_transformed, y_prob_cal, position_size_cal)
+
+    print('3.3. Evaluating the calibration set after calibration...')
+    save_path = f'./../results/{args.output_folder}/calibrated_calibration_set_'
+    ppl, brier_score = evaluate(y_true_cal, y_prob_cal_transformed, save_path)
+    print(f'Calibration set (isotonic regression): Perplexity={ppl}, Brier score={brier_score}')
+
+    print('3.4. Calibrating the test set...')
+    X_prob_test = y_prob_test.reshape(-1, 1)
+    y_prob_test_transformed = iso_regressor.transform(X_prob_test)
+    y_prob_test_transformed = denormalize(y_prob_test_transformed, y_prob_test, position_size_test) 
+
+    print('3.5. Evaluating the test set after calibration...')
+    save_path = f'./../results/{args.output_folder}/calibrated_test_set_'
+    ppl, brier_score = evaluate(y_true_test, y_prob_test_transformed, save_path)
+    print(f'Test set (isotonic regression): Perplexity={ppl}, Brier score={brier_score}')
+    
     # TODO: Calibrate with Platt Scaling
 
     print('MAIN PIPELINE FINISHED.')
