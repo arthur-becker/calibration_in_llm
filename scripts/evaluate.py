@@ -30,17 +30,15 @@ def evaluate(
     - probabilities calibrated with isotonic regression
     """
 
-    # Calculate metrics
-    ppl = perplexity(y_true, y_prob)
-    brier_score = brier_score_loss(y_true, y_prob)
-
     # Visualize
     visualize_hist(y_true, y_prob, save_name=output_folder_path + 'probabilities_distribution.png')
     visualize_calibration_curve(y_true, y_prob, save_name=output_folder_path + 'calibration_curve.png')
 
-    # Print results
-    print(f'Perplexity of uncalibrated probabilities: {ppl}')
-    print(f'Brier score of uncalibrated probabilities: {brier_score}')
+    # Calculate metrics
+    ppl = perplexity(y_true, y_prob)
+    brier_score = brier_score_loss(y_true, y_prob)
+
+    return ppl, brier_score
 
 if __name__ == '__main__':
     # Preparation
@@ -60,7 +58,9 @@ if __name__ == '__main__':
     proba_position_result_list : PositionResult = list(llama_cpp_run.proba_reader.read())
     print(f'Loaded {len(proba_position_result_list)} position results from the calibration set')
 
-    y_cal_true, y_cal_prob = position_result_to_numpy(proba_position_result_list)
-    evaluate(y_cal_true, y_cal_prob, output_folder_path)
+    y_cal_true, y_cal_prob, position_size = position_result_to_numpy(proba_position_result_list)
+    ppl, brier_score = evaluate(y_cal_true, y_cal_prob, output_folder_path)
+    print(f'Perplexity: {ppl}')
+    print(f'Brier score: {brier_score}')
 
     print('\nEVALUATION FINISHED. Results are saved in the folder: ', output_folder_path)

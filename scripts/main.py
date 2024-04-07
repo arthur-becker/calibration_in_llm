@@ -29,19 +29,25 @@ if __name__ == "__main__":
     else:
         raise ValueError(f'Folder ./../results/{args.output_folder} already exists. Please change the output folder name.')
     
-    # 1. Evaluate the calibration set
+    # 1. Evaluate the calibration set before calibration
+    print('1. Evaluating the calibration set before calibration...')
+    print('1.1. Loading the calibration set...')
     calibration_set_run = RunInfo(args.calibration_set_run)
     position_result_proba = list(calibration_set_run.proba_reader.read())
     y_true_cal, y_prob_cal = position_result_to_numpy(position_result_proba)
     save_path = f'./../results/{args.output_folder}/uncalibrated_calibration_set_'
-    evaluate(y_true_cal, y_prob_cal, save_path)
+    ppl, brier_score = evaluate(y_true_cal, y_prob_cal, save_path)
+    print(f'Calibraion set (uncalibrated): Perplexity={ppl}, Brier score={brier_score}')
 
     # 2. Evaluate the test set
+    print('2. Evaluating the test set before calibration...')
+    print('2.1. Loading the test set...')
     test_set_run = RunInfo(args.test_set_run)
     position_result_proba = list(test_set_run.proba_reader.read())
     y_true_test, y_prob_test = position_result_to_numpy(position_result_proba)
     save_path = f'./../results/{args.output_folder}/uncalibrated_test_set_'
-    evaluate(y_true_test, y_prob_test, save_path)
+    ppl, brier_score = evaluate(y_true_test, y_prob_test, save_path)
+    print(f'Test set (uncalibrated): Perplexity={ppl}, Brier score={brier_score}')
 
     # TODO: Calibrate with isotonic regression
 
