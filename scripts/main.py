@@ -20,6 +20,9 @@ def read_args():
     parser.add_argument('output_folder',
         type=str,
         help='Path where the output of this script will be saved.')
+    parser.add_argument('-normalize_input', 
+        action='store_true',
+        help='Normalize the input probabilities before calibration')
     return parser.parse_args()
 
 if __name__ == "__main__":
@@ -38,7 +41,12 @@ if __name__ == "__main__":
     calibration_set_run = RunInfo(args.calibration_set_run)
     position_result_proba = list(calibration_set_run.proba_reader.read())
     y_true_cal, y_prob_cal, position_size_cal = position_result_to_numpy(position_result_proba)
-    y_prob_cal = normalize(y_prob_cal, position_size_cal)
+
+    if args.normalize_input:
+        print('1.1.1. Normalizing the input probabilities...')
+        y_prob_cal = normalize(y_prob_cal, position_size_cal)
+    else:
+        print('1.1.1. Skipping normalization of the input probabilities...')
 
     print('1.2. Evaluating...')
     save_path = f'./../results/{args.output_folder}/uncalibrated_calibration_set_'
@@ -51,7 +59,11 @@ if __name__ == "__main__":
     test_set_run = RunInfo(args.test_set_run)
     position_result_proba = list(test_set_run.proba_reader.read())
     y_true_test, y_prob_test, position_size_test = position_result_to_numpy(position_result_proba)
-    y_prob_test = normalize(y_prob_test, position_size_test)
+    if args.normalize_input:
+        print('2.1.1. Normalizing the input probabilities...')
+        y_prob_test = normalize(y_prob_test, position_size_test)
+    else:
+        print('2.1.1. Skipping normalization of the input probabilities...')
 
     print('2.2. Evaluating...')
     save_path = f'./../results/{args.output_folder}/uncalibrated_test_set_'
