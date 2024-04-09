@@ -11,15 +11,15 @@ from normalize import normalize, denormalize
 
 def read_args():
     parser = argparse.ArgumentParser(description='Evaluate a model')
-    parser.add_argument('output_folder',
-        type=str,
-        help='Path where the output of this script will be saved.')
     parser.add_argument('calibration_set_run', 
         type=str, 
         help='The name of the folder in `results/` where C++ program stored the output of the run on the calibration set')
     parser.add_argument('test_set_run',
         type=str,
         help='The name of the folder in `results/` where C++ program stored the output of the run on the test set')
+    parser.add_argument('output_folder',
+        type=str,
+        help='Path where the output of this script will be saved.')
     return parser.parse_args()
 
 if __name__ == "__main__":
