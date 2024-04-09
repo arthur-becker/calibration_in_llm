@@ -49,9 +49,17 @@ if __name__ == "__main__":
         print('1.1.1. Skipping normalization of the input probabilities...')
 
     print('1.2. Evaluating...')
+
     save_path = f'./../results/{args.output_folder}/uncalibrated_calibration_set_'
     ppl, brier_score = evaluate(y_true_cal, y_prob_cal, save_path)
     print(f'Calibraion set (uncalibrated): Perplexity={ppl}, Brier score={brier_score}')
+
+    avg_sum_cal = np.mean([np.sum(y_prob_cal[i:i+position_size_cal]) for i in range(0, len(y_prob_cal), position_size_cal)])
+    print(f'-- average sum: {avg_sum_cal}')
+    min_sum_cal = np.min([np.sum(y_prob_cal[i:i+position_size_cal]) for i in range(0, len(y_prob_cal), position_size_cal)])
+    print(f'-- min sum: {min_sum_cal}')
+    max_sum_cal = np.max([np.sum(y_prob_cal[i:i+position_size_cal]) for i in range(0, len(y_prob_cal), position_size_cal)])
+    print(f'-- max sum: {max_sum_cal}')
 
     # 2. Evaluate the test set
     print('2. Evaluating the test set before calibration...')
@@ -69,6 +77,13 @@ if __name__ == "__main__":
     save_path = f'./../results/{args.output_folder}/uncalibrated_test_set_'
     ppl, brier_score = evaluate(y_true_test, y_prob_test, save_path)
     print(f'Test set (uncalibrated): Perplexity={ppl}, Brier score={brier_score}')
+
+    avg_sum_test = np.mean([np.sum(y_prob_test[i:i+position_size_test]) for i in range(0, len(y_prob_test), position_size_test)])
+    print(f'-- average sum: {avg_sum_test}')
+    min_sum_test = np.min([np.sum(y_prob_test[i:i+position_size_test]) for i in range(0, len(y_prob_test), position_size_test)])
+    print(f'-- min sum: {min_sum_test}')
+    max_sum_test = np.max([np.sum(y_prob_test[i:i+position_size_test]) for i in range(0, len(y_prob_test), position_size_test)])
+    print(f'-- max sum: {max_sum_test}')
 
     # 3. Calibrate with isotonic regression
     print('3. Calibrating with isotonic regression...')
@@ -97,6 +112,7 @@ if __name__ == "__main__":
     ppl, brier_score = evaluate(y_true_test, y_prob_test_transformed, save_path)
     print(f'Test set (isotonic regression): Perplexity={ppl}, Brier score={brier_score}')
     
+    print('4. Calibrating with Platt Scaling...')
     # TODO: Calibrate with Platt Scaling
 
     print('MAIN PIPELINE FINISHED.')
