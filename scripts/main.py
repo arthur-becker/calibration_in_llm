@@ -8,6 +8,7 @@ from evaluate import evaluate
 from sklearn.isotonic import IsotonicRegression
 import numpy as np
 from normalize import normalize, denormalize
+import joblib
 
 def read_args():
     parser = argparse.ArgumentParser(description='Evaluate a model')
@@ -111,6 +112,9 @@ if __name__ == "__main__":
     save_path = f'./../results/{args.output_folder}/calibrated_test_set_'
     ppl, brier_score = evaluate(y_true_test, y_prob_test_transformed, save_path)
     print(f'Test set (isotonic regression): Perplexity={ppl}, Brier score={brier_score}')
+
+    print('3.6. Saving the isotonic regression model...')
+    joblib.dump(iso_regressor, f'./../results/{args.output_folder}/isotonic_regressor.joblib')
     
     print('4. Calibrating with Platt Scaling...')
     # TODO: Calibrate with Platt Scaling
