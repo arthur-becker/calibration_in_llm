@@ -178,8 +178,7 @@ std::vector<float> ProbabilitiesExtractor<T>::get_chunk_logits(Chunk chunk){
 
 template <typename T>
 void ProbabilitiesExtractor<T>::write_chunk_logits_and_proba(std::vector<float> * logits, Chunk chunk){
-    int second_half_start = this->getContextSize() / 2;
-    for(uint32_t i = second_half_start; i < this->getContextSize() - 1; i++){
+    for(uint32_t i = 0; i < this->getContextSize() - 1; i++){
         // llama.cpp uses the logits of the current position to calculate the probabilities of the next token.
         // The logits of the last position in the chunk are not used to calculate the probabilities of the next token.
         // Therefore, we skip the last position and count only to `this->getContextSize() - 1`
