@@ -44,7 +44,7 @@ if __name__ == '__main__':
     parser = argparse.ArgumentParser(description='Visualize the output data')
     parser.add_argument('llama_cpp_run', 
         type=str, 
-        help='The name of the folder in `results/` where llama.cpp stored the output')
+        help='The name of the folder in `outputs/extractor/` where llama.cpp stored the output')
     args = parser.parse_args()
 
     run_info = RunInfo(args.llama_cpp_run)

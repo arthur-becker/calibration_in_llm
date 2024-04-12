@@ -16,7 +16,7 @@ def read_args():
         help='Path where the output of this script will be saved.')
     parser.add_argument('llama_cpp_run', 
         type=str, 
-        help='The name of the folder in `results/` where C++ program stored the output of the run of llama.cpp')
+        help='The name of the folder in `outputs/extractor/` where C++ program stored the output of the run of llama.cpp')
     return parser.parse_args()
 
 def evaluate(
@@ -43,7 +43,7 @@ def evaluate(
 if __name__ == '__main__':
     # Preparation
     args = read_args()
-    output_folder_path = "./../results/" + args.output_folder + "/"
+    output_folder_path = "./../../../outputs/calibrator/" + args.output_folder + "/"
     llama_cpp_run = RunInfo(args.llama_cpp_run)
 
     if not os.path.exists(output_folder_path):

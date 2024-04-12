@@ -15,7 +15,7 @@
 /// @param params 
 /// @param custom_params 
 void save_run_info(CustomParams custom_params){
-    std::string output_folder_path = "../results/" + custom_params.output_folder;
+    std::string output_folder_path = "./../../../outputs/extractor/" + custom_params.output_folder;
     std::string run_info_filename = output_folder_path + "/info.yaml";
 
     YAML::Node run_info;
@@ -49,8 +49,8 @@ void save_run_info(CustomParams custom_params){
 /// @param argv 
 /// @return 
 int main(int argc, char ** argv) {
-    std::string output_folder_path_full = "../results/mock_writer_type_full";
-    std::string output_folder_path_top = "../results/mock_writer_type_top";
+    std::string output_folder_path_full = "./../../../outputs/extractor/mock_writer_type_full";
+    std::string output_folder_path_top = "./../../../outputs/extractor/mock_writer_type_top";
 
     // Check existence of output folders and create them if they don't exist
     if (std::filesystem::exists(output_folder_path_full)) {

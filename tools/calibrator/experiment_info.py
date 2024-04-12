@@ -9,7 +9,7 @@ def read_yaml(path):
 
 class RunInfo:
     def __init__(self, output_folder_name: str):
-        self.path = f'./../results/{output_folder_name}/'
+        self.path = f'./../../../outputs/extractor/{output_folder_name}/'
         if not os.path.exists(self.path):
             raise ValueError(f'Path {self.path} does not exist')
         
@@ -34,7 +34,7 @@ if __name__ == '__main__':
     parser = argparse.ArgumentParser(description='Evaluate a model')
     parser.add_argument('output_folder', 
         type=str, 
-        help='The name of the folder in `results/` where C++ program stored the output')
+        help='The name of the folder in `outputs/extractor/` where C++ program stored the output')
     args = parser.parse_args()
 
     run_info = RunInfo(args.output_folder)

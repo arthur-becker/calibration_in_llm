@@ -1,5 +1,7 @@
 .vscode
-build/*
-!build/.gitkeep
-results/*
+tools/extractor/build/*
+outputs/*/*
+!.gitkeep
 __pycache__
+models/*
+datasets/*
