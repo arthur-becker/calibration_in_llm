@@ -133,7 +133,7 @@ if __name__ == "__main__":
     y_prob_cal_transformed = denormalize(y_prob_cal_transformed, y_prob_cal, position_size_cal)
 
     print('3.3. Evaluating the calibration set after calibration...')
-    save_path = f'./../results/{args.output_folder}/calibrated_calibration_set_'
+    save_path = f'./../results/{args.output_folder}/isotonic_calibration_set_'
     ppl, brier_score = evaluate(y_true_cal, y_prob_cal_transformed, save_path)
     results['calibration_set']['isotonic']['perplexity'] = ppl
     results['calibration_set']['isotonic']['perplexity_improvement'] = ppl < results['calibration_set']['uncalibrated']['perplexity']
@@ -147,7 +147,7 @@ if __name__ == "__main__":
     y_prob_test_transformed = denormalize(y_prob_test_transformed, y_prob_test, position_size_test) 
 
     print('3.5. Evaluating the test set after calibration...')
-    save_path = f'./../results/{args.output_folder}/calibrated_test_set_'
+    save_path = f'./../results/{args.output_folder}/isotonic_test_set_'
     ppl, brier_score = evaluate(y_true_test, y_prob_test_transformed, save_path)
     results['test_set']['isotonic']['perplexity'] = ppl
     results['test_set']['isotonic']['perplexity_improvement'] = ppl < results['test_set']['uncalibrated']['perplexity']
