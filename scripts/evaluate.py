@@ -36,7 +36,7 @@ def evaluate(
 
     # Calculate metrics
     ppl = perplexity(y_true, y_prob)
-    brier_score = brier_score_loss(y_true, y_prob)
+    brier_score = float(brier_score_loss(y_true, y_prob))
 
     return ppl, brier_score
 

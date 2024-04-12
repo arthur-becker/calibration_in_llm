@@ -9,6 +9,7 @@ from sklearn.isotonic import IsotonicRegression
 import numpy as np
 from normalize import normalize, denormalize
 import joblib
+import yaml
 
 def read_args():
     parser = argparse.ArgumentParser(description='Evaluate a model')
@@ -30,6 +31,16 @@ if __name__ == "__main__":
     print('\n\nSTARTING MAIN PIPELINE...')
 
     args = read_args()
+    results = {
+        'calibration_set': {
+            'uncalibrated': {},
+            'isotonic': {}
+        },
+        'test_set': {
+            'uncalibrated': {},
+            'isotonic': {}
+        }
+    }
 
     if not os.path.exists(f'./../results/{args.output_folder}'):
         os.makedirs(f'./../results/{args.output_folder}')
@@ -53,14 +64,25 @@ if __name__ == "__main__":
 
     save_path = f'./../results/{args.output_folder}/uncalibrated_calibration_set_'
     ppl, brier_score = evaluate(y_true_cal, y_prob_cal, save_path)
+    results['calibration_set']['uncalibrated']['perplexity'] = ppl
+    results['calibration_set']['uncalibrated']['brier_score'] = brier_score
     print(f'Calibraion set (uncalibrated): Perplexity={ppl}, Brier score={brier_score}')
 
-    avg_sum_cal = np.mean([np.sum(y_prob_cal[i:i+position_size_cal]) for i in range(0, len(y_prob_cal), position_size_cal)])
+    avg_sum_cal = np.mean([
+            np.sum(y_prob_cal[i:i+position_size_cal]) for i in range(0, len(y_prob_cal), position_size_cal)
+        ])
     print(f'-- average sum: {avg_sum_cal}')
-    min_sum_cal = np.min([np.sum(y_prob_cal[i:i+position_size_cal]) for i in range(0, len(y_prob_cal), position_size_cal)])
+    min_sum_cal = np.min([
+            np.sum(y_prob_cal[i:i+position_size_cal]) for i in range(0, len(y_prob_cal), position_size_cal)
+        ])
     print(f'-- min sum: {min_sum_cal}')
-    max_sum_cal = np.max([np.sum(y_prob_cal[i:i+position_size_cal]) for i in range(0, len(y_prob_cal), position_size_cal)])
+    max_sum_cal = np.max([
+            np.sum(y_prob_cal[i:i+position_size_cal]) for i in range(0, len(y_prob_cal), position_size_cal)
+        ])
     print(f'-- max sum: {max_sum_cal}')
+    results['calibration_set']['uncalibrated']['avg_sum'] = float(avg_sum_cal)
+    results['calibration_set']['uncalibrated']['min_sum'] = float(min_sum_cal)
+    results['calibration_set']['uncalibrated']['max_sum'] = float(max_sum_cal)
 
     # 2. Evaluate the test set
     print('2. Evaluating the test set before calibration...')
@@ -77,14 +99,26 @@ if __name__ == "__main__":
     print('2.2. Evaluating...')
     save_path = f'./../results/{args.output_folder}/uncalibrated_test_set_'
     ppl, brier_score = evaluate(y_true_test, y_prob_test, save_path)
+    results['test_set']['uncalibrated']['perplexity'] = ppl
+    results['test_set']['uncalibrated']['brier_score'] = brier_score
     print(f'Test set (uncalibrated): Perplexity={ppl}, Brier score={brier_score}')
 
-    avg_sum_test = np.mean([np.sum(y_prob_test[i:i+position_size_test]) for i in range(0, len(y_prob_test), position_size_test)])
+    avg_sum_test = np.mean([
+            np.sum(y_prob_test[i:i+position_size_test]) 
+            for i in range(0, len(y_prob_test), position_size_test)
+        ])
     print(f'-- average sum: {avg_sum_test}')
-    min_sum_test = np.min([np.sum(y_prob_test[i:i+position_size_test]) for i in range(0, len(y_prob_test), position_size_test)])
+    min_sum_test = np.min([
+            np.sum(y_prob_test[i:i+position_size_test]) for i in range(0, len(y_prob_test), position_size_test)
+        ])
     print(f'-- min sum: {min_sum_test}')
-    max_sum_test = np.max([np.sum(y_prob_test[i:i+position_size_test]) for i in range(0, len(y_prob_test), position_size_test)])
+    max_sum_test = np.max([
+            np.sum(y_prob_test[i:i+position_size_test]) for i in range(0, len(y_prob_test), position_size_test)
+        ])
     print(f'-- max sum: {max_sum_test}')
+    results['test_set']['uncalibrated']['avg_sum'] = float(avg_sum_test)
+    results['test_set']['uncalibrated']['min_sum'] = float(min_sum_test)
+    results['test_set']['uncalibrated']['max_sum'] = float(max_sum_test)
 
     # 3. Calibrate with isotonic regression
     print('3. Calibrating with isotonic regression...')
@@ -101,6 +135,10 @@ if __name__ == "__main__":
     print('3.3. Evaluating the calibration set after calibration...')
     save_path = f'./../results/{args.output_folder}/calibrated_calibration_set_'
     ppl, brier_score = evaluate(y_true_cal, y_prob_cal_transformed, save_path)
+    results['calibration_set']['isotonic']['perplexity'] = ppl
+    results['calibration_set']['isotonic']['perplexity_improvement'] = ppl < results['calibration_set']['uncalibrated']['perplexity']
+    results['calibration_set']['isotonic']['brier_score'] = brier_score
+    results['calibration_set']['isotonic']['brier_score_improvement'] = brier_score < results['calibration_set']['uncalibrated']['brier_score']
     print(f'Calibration set (isotonic regression): Perplexity={ppl}, Brier score={brier_score}')
 
     print('3.4. Calibrating the test set...')
@@ -111,6 +149,10 @@ if __name__ == "__main__":
     print('3.5. Evaluating the test set after calibration...')
     save_path = f'./../results/{args.output_folder}/calibrated_test_set_'
     ppl, brier_score = evaluate(y_true_test, y_prob_test_transformed, save_path)
+    results['test_set']['isotonic']['perplexity'] = ppl
+    results['test_set']['isotonic']['perplexity_improvement'] = ppl < results['test_set']['uncalibrated']['perplexity']
+    results['test_set']['isotonic']['brier_score'] = brier_score
+    results['test_set']['isotonic']['brier_score_improvement'] = brier_score < results['test_set']['uncalibrated']['brier_score']
     print(f'Test set (isotonic regression): Perplexity={ppl}, Brier score={brier_score}')
 
     print('3.6. Saving the isotonic regression model...')
@@ -118,5 +160,9 @@ if __name__ == "__main__":
     
     print('4. Calibrating with Platt Scaling...')
     # TODO: Calibrate with Platt Scaling
+
+    print('4. Saving the results...')
+    with open(f'./../results/{args.output_folder}/results.yaml', 'w') as f:
+        yaml.dump(results, f)
 
     print('MAIN PIPELINE FINISHED.')
