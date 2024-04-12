@@ -1,6 +1,6 @@
 import os
 import yaml
-from result_reader import ResultReader
+from utils.result_reader import ResultReader
 import argparse
 
 def read_yaml(path):

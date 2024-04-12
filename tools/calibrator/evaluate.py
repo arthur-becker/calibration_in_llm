@@ -1,8 +1,8 @@
 import argparse
-from position_result import PositionResult
-from result_reader import ResultReader
-from convert import position_result_to_numpy
-from perplexity import perplexity
+from utils.position_result import PositionResult
+from utils.result_reader import ResultReader
+from utils.convert import position_result_to_numpy
+from utils.perplexity import perplexity
 from experiment_info import RunInfo
 import os
 from visualize import visualize_hist, visualize_calibration_curve

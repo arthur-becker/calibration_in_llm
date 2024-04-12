@@ -1,7 +1,7 @@
 import struct
 from typing import Generator
-from position_result import PositionFullResult, PositionTopResult, PositionResult
-import cpp_constants
+from utils.position_result import PositionFullResult, PositionTopResult, PositionResult
+import utils.cpp_constants as cpp_constants
 from enum import Enum
 import numpy as np
 

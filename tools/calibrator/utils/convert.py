@@ -1,5 +1,5 @@
 import numpy as np
-from position_result import PositionResult
+from utils.position_result import PositionResult
 
 def position_result_to_numpy(results: list[PositionResult]) -> tuple[np.ndarray, np.ndarray]:
     """

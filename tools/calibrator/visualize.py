@@ -1,9 +1,9 @@
 
 import argparse
 from experiment_info import RunInfo
-from position_result import PositionResult
+from utils.position_result import PositionResult
 from matplotlib import pyplot as plt
-from convert import position_result_to_numpy
+from utils.convert import position_result_to_numpy
 from sklearn.calibration import calibration_curve
 
 # TODO: visualize the distribution of the output data

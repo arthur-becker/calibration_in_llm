@@ -3,11 +3,11 @@
 import argparse
 import os
 from experiment_info import RunInfo
-from convert import position_result_to_numpy
+from utils.convert import position_result_to_numpy
 from evaluate import evaluate
 from sklearn.isotonic import IsotonicRegression
 import numpy as np
-from normalize import normalize, denormalize
+from utils.normalize import normalize, denormalize
 import joblib
 import yaml
 

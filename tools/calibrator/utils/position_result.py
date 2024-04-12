@@ -1,7 +1,7 @@
 from abc import ABC, abstractmethod
 import binascii
 import struct
-import cpp_constants
+import utils.cpp_constants as cpp_constants
 import os
 
 class PositionResult(ABC):

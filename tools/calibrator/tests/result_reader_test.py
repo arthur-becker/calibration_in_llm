@@ -1,9 +1,9 @@
 from unittest import TestCase
-from result_reader import ResultReader
+from utils.result_reader import ResultReader
 import numpy as np
-from position_result import PositionFullResult, PositionTopResult
+from utils.position_result import PositionFullResult, PositionTopResult
 from decimal import Decimal, getcontext
-from softmax import softmax
+from utils.softmax import softmax
 from experiment_info import read_yaml
 
 class TestResultReader(TestCase):

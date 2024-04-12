@@ -1,4 +1,4 @@
-from position_result import PositionFullResult
+from utils.position_result import PositionFullResult
 import numpy as np
 
 def softmax(position_result: PositionFullResult) -> np.array: 
