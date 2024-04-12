@@ -43,7 +43,7 @@ def evaluate(
 if __name__ == '__main__':
     # Preparation
     args = read_args()
-    output_folder_path = "./../../../outputs/calibrator/" + args.output_folder + "/"
+    output_folder_path = "./../../outputs/calibrator/" + args.output_folder + "/"
     llama_cpp_run = RunInfo(args.llama_cpp_run)
 
     if not os.path.exists(output_folder_path):

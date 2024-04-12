@@ -42,10 +42,10 @@ if __name__ == "__main__":
         }
     }
 
-    if not os.path.exists(f'./../../../outputs/calibrator/{args.output_folder}'):
-        os.makedirs(f'./../../../outputs/calibrator/{args.output_folder}')
+    if not os.path.exists(f'./../../outputs/calibrator/{args.output_folder}'):
+        os.makedirs(f'./../../outputs/calibrator/{args.output_folder}')
     else:
-        raise ValueError(f'Folder ./../../../outputs/calibrator/{args.output_folder} already exists. Please change the output folder name.')
+        raise ValueError(f'Folder ./../../outputs/calibrator/{args.output_folder} already exists. Please change the output folder name.')
     
     # 1. Evaluate the calibration set before calibration
     print('1. Evaluating the calibration set before calibration...')
@@ -62,7 +62,7 @@ if __name__ == "__main__":
 
     print('1.2. Evaluating...')
 
-    save_path = f'./../../../outputs/calibrator/{args.output_folder}/uncalibrated_calibration_set_'
+    save_path = f'./../../outputs/calibrator/{args.output_folder}/uncalibrated_calibration_set_'
     ppl, brier_score = evaluate(y_true_cal, y_prob_cal, save_path)
     results['calibration_set']['uncalibrated']['perplexity'] = ppl
     results['calibration_set']['uncalibrated']['brier_score'] = brier_score
@@ -97,7 +97,7 @@ if __name__ == "__main__":
         print('2.1.1. Skipping normalization of the input probabilities...')
 
     print('2.2. Evaluating...')
-    save_path = f'./../../../outputs/calibrator/{args.output_folder}/uncalibrated_test_set_'
+    save_path = f'./../../outputs/calibrator/{args.output_folder}/uncalibrated_test_set_'
     ppl, brier_score = evaluate(y_true_test, y_prob_test, save_path)
     results['test_set']['uncalibrated']['perplexity'] = ppl
     results['test_set']['uncalibrated']['brier_score'] = brier_score
@@ -133,7 +133,7 @@ if __name__ == "__main__":
     y_prob_cal_transformed = denormalize(y_prob_cal_transformed, y_prob_cal, position_size_cal)
 
     print('3.3. Evaluating the calibration set after calibration...')
-    save_path = f'./../../../outputs/calibrator/{args.output_folder}/isotonic_calibration_set_'
+    save_path = f'./../../outputs/calibrator/{args.output_folder}/isotonic_calibration_set_'
     ppl, brier_score = evaluate(y_true_cal, y_prob_cal_transformed, save_path)
     results['calibration_set']['isotonic']['perplexity'] = ppl
     results['calibration_set']['isotonic']['perplexity_improvement'] = ppl < results['calibration_set']['uncalibrated']['perplexity']
@@ -147,7 +147,7 @@ if __name__ == "__main__":
     y_prob_test_transformed = denormalize(y_prob_test_transformed, y_prob_test, position_size_test) 
 
     print('3.5. Evaluating the test set after calibration...')
-    save_path = f'./../../../outputs/calibrator/{args.output_folder}/isotonic_test_set_'
+    save_path = f'./../../outputs/calibrator/{args.output_folder}/isotonic_test_set_'
     ppl, brier_score = evaluate(y_true_test, y_prob_test_transformed, save_path)
     results['test_set']['isotonic']['perplexity'] = ppl
     results['test_set']['isotonic']['perplexity_improvement'] = ppl < results['test_set']['uncalibrated']['perplexity']
@@ -156,13 +156,13 @@ if __name__ == "__main__":
     print(f'Test set (isotonic regression): Perplexity={ppl}, Brier score={brier_score}')
 
     print('3.6. Saving the isotonic regression model...')
-    joblib.dump(iso_regressor, f'./../../../outputs/calibrator/{args.output_folder}/isotonic_regressor.joblib')
+    joblib.dump(iso_regressor, f'./../../outputs/calibrator/{args.output_folder}/isotonic_regressor.joblib')
     
     print('4. Calibrating with Platt Scaling...')
     # TODO: Calibrate with Platt Scaling
 
     print('4. Saving the results...')
-    with open(f'./../../../outputs/calibrator/{args.output_folder}/results.yaml', 'w') as f:
+    with open(f'./../../outputs/calibrator/{args.output_folder}/results.yaml', 'w') as f:
         yaml.dump(results, f)
 
     print('MAIN PIPELINE FINISHED.')
