@@ -3,7 +3,7 @@
 import argparse
 import os
 from experiment_info import RunInfo
-from utils.convert import position_result_to_numpy
+from utils.convert import position_result_to_numpy, logits_to_proba
 from evaluate import evaluate
 from sklearn.isotonic import IsotonicRegression
 import numpy as np
@@ -51,7 +51,10 @@ if __name__ == "__main__":
     print('1. Evaluating the calibration set before calibration...')
     print('1.1. Loading the calibration set...')
     calibration_set_run = RunInfo(args.calibration_set_run)
-    position_result_proba = list(calibration_set_run.proba_reader.read())
+    position_result_proba = [
+            logits_to_proba(logits) 
+            for logits in calibration_set_run.logits_reader.read()
+        ]
     y_true_cal, y_prob_cal, position_size_cal = position_result_to_numpy(position_result_proba)
 
     if args.normalize_input:
@@ -88,7 +91,10 @@ if __name__ == "__main__":
     print('2. Evaluating the test set before calibration...')
     print('2.1. Loading the test set...')
     test_set_run = RunInfo(args.test_set_run)
-    position_result_proba = list(test_set_run.proba_reader.read())
+    position_result_proba = [
+            logits_to_proba(logits) 
+            for logits in test_set_run.logits_reader.read()
+        ]
     y_true_test, y_prob_test, position_size_test = position_result_to_numpy(position_result_proba)
     if args.normalize_input:
         print('2.1.1. Normalizing the input probabilities...')

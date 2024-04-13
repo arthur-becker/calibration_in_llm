@@ -76,7 +76,6 @@ void ProbabilitiesExtractor<T>::init_result_writers(std::string output_folder, O
     }
 
     this->logits_writer = ResultWriter<T>(base_file_name +  ".logits");
-    this->proba_writer = ResultWriter<T>(base_file_name +  ".proba");
 }
 
 
@@ -87,7 +86,6 @@ void ProbabilitiesExtractor<T>::run(){
 
     this->init_result_writers(this->custom_params.output_folder, this->custom_params.output_writer_type);
     this->logits_writer.openFile();
-    this->proba_writer.openFile();
 
     ChunkCallback chunk_callback = [&](Chunk chunk){
         printf("Processing chunk %d/%d\n", chunk.getIndex() + 1, input_iterator->getChunksNumber());
@@ -99,7 +97,6 @@ void ProbabilitiesExtractor<T>::run(){
     this->input_iterator->iterate(chunk_callback);
 
     this->logits_writer.closeFile();
-    this->proba_writer.closeFile();
     this->save_run_info(this->getParams(), this->custom_params);
     printf("Done\n");
 }
@@ -195,26 +192,19 @@ void ProbabilitiesExtractor<T>::write_chunk_logits_and_proba(std::vector<float> 
         uint16_t correct_token = tokens.at(current_position + 1);
 
         PositionFullResult logits_full(token_data, correct_token);
-        PositionFullResult proba_full = softmax(logits_full);
 
         // Logits
         if constexpr (std::is_base_of_v<PositionFullResult, T>) {
             this->logits_writer.addPositionResult(std::move(logits_full));
-            this->proba_writer.addPositionResult(std::move(proba_full));
         } else if constexpr (std::is_base_of_v<PositionTopResult, T>){
             this->logits_writer.addPositionResult(PositionTopResult(
                 std::move(token_data),
-                correct_token,
-                this->custom_params.top_k));
-            this->proba_writer.addPositionResult(PositionTopResult(
-                proba_full.getTokenData(),
                 correct_token,
                 this->custom_params.top_k));
         }
     }
 
     this->logits_writer.writeAndClear();
-    this->proba_writer.writeAndClear();
 }
 
 template class ProbabilitiesExtractor<PositionFullResult>;

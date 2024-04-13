@@ -1,5 +1,6 @@
 import numpy as np
-from utils.position_result import PositionResult
+from utils.position_result import PositionResult, PositionFullResult, PositionTopResult
+from utils.softmax import softmax
 
 def position_result_to_numpy(results: list[PositionResult]) -> tuple[np.ndarray, np.ndarray]:
     """
@@ -30,3 +31,15 @@ def position_result_to_numpy(results: list[PositionResult]) -> tuple[np.ndarray,
     assert y_true.shape == y_value.shape
 
     return y_true, y_value, size
+
+def logits_to_proba(logits_position_result: PositionResult) -> PositionResult:
+    if isinstance(logits_position_result, PositionTopResult):
+        proba = softmax(logits_position_result)
+        proba_position_result = PositionTopResult(proba, logits_position_result.n)
+        return proba_position_result
+    elif isinstance(logits_position_result, PositionFullResult):
+        proba = softmax(logits_position_result)
+        proba_position_result = PositionFullResult(proba, logits_position_result.get_correct_token())
+        return proba_position_result
+    else:
+        raise ValueError(f'Unknown position result type: {type(logits_position_result)}')

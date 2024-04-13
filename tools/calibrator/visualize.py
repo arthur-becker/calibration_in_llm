@@ -3,7 +3,7 @@ import argparse
 from experiment_info import RunInfo
 from utils.position_result import PositionResult
 from matplotlib import pyplot as plt
-from utils.convert import position_result_to_numpy
+from utils.convert import position_result_to_numpy, logits_to_proba
 from sklearn.calibration import calibration_curve
 
 # TODO: visualize the distribution of the output data
@@ -49,7 +49,10 @@ if __name__ == '__main__':
 
     run_info = RunInfo(args.llama_cpp_run)
 
-    proba_position_result_list : PositionResult = list(run_info.proba_reader.read())
+    proba_position_result_list = [
+            logits_to_proba(logits) 
+            for logits in run_info.logits_reader.read()
+        ]
     y_true, y_prob, size = position_result_to_numpy(proba_position_result_list)
 
     # Visualization

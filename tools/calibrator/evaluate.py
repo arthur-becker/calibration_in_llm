@@ -1,7 +1,5 @@
 import argparse
-from utils.position_result import PositionResult
-from utils.result_reader import ResultReader
-from utils.convert import position_result_to_numpy
+from utils.convert import position_result_to_numpy, logits_to_proba
 from utils.perplexity import perplexity
 from experiment_info import RunInfo
 import os
@@ -55,7 +53,10 @@ if __name__ == '__main__':
     print('\n\nSTARTING EVALUATION...')
 
     # 1. Load the calibration set results and evaluate them
-    proba_position_result_list : PositionResult = list(llama_cpp_run.proba_reader.read())
+    proba_position_result_list = [
+            logits_to_proba(logits) 
+            for logits in llama_cpp_run.logits_reader.read()
+        ]
     print(f'Loaded {len(proba_position_result_list)} position results from the calibration set')
 
     y_cal_true, y_cal_prob, position_size = position_result_to_numpy(proba_position_result_list)
