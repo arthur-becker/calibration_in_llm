@@ -32,6 +32,11 @@ if __name__ == "__main__":
 
     args = read_args()
     results = {
+        'args': {
+            'calibration_set_run': args.calibration_set_run,
+            'test_set_run': args.test_set_run,
+            'normalize_input': args.normalize_input
+        },
         'calibration_set': {
             'uncalibrated': {},
             'isotonic': {}
