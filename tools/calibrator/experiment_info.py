@@ -13,7 +13,8 @@ class RunInfo:
         if not os.path.exists(self.path):
             raise ValueError(f'Path {self.path} does not exist')
         
-        run_info = read_yaml(self.path + 'info.yaml')
+        self.run_info_path = self.path + 'info.yaml'
+        run_info = read_yaml(self.run_info_path)
         
         self.output_writer_type = None
         if run_info['output_writer']['output_writer_type'] == 'top-k':

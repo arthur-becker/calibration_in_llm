@@ -11,6 +11,7 @@ import joblib
 import yaml
 from dataclasses import dataclass, field
 from typing import List
+import shutil
 
 def read_args():
     parser = argparse.ArgumentParser(description='Evaluate a model')
@@ -133,6 +134,8 @@ class MainPipeline:
         print(f'Results saved in {self.output_folder_path}')
 
         # TODO: copy the info.yaml file from the calibration set to the output folder
+        shutil.copy(self.calibration_set_run.run_info_path, self.output_folder_path + '/calibration_set_info.yaml')
+        shutil.copy(self.test_set_run.run_info_path, self.output_folder_path + '/test_set_info.yaml')
 
         print('\n\nMAIN PIPELINE FINISHED.')
 
