@@ -49,11 +49,18 @@ if __name__ == '__main__':
 
     run_info = RunInfo(args.llama_cpp_run)
 
-    proba_position_result_list = [
-            logits_to_proba(logits) 
-            for logits in run_info.logits_reader.read()
-        ]
-    y_true, y_prob, size = position_result_to_numpy(proba_position_result_list)
+    i = 0
+    proba_position_result_list = []
+    for logits in run_info.logits_reader.read():
+        proba = logits_to_proba(logits)
+        proba_position_result_list.append(proba)
+        if i % 100 == 0:
+            print(f'Unpacked a position result: {i+1}')
+        i += 1
+    print(f'proba_position_result_list has been created')
+
+    y_true, y_prob, size = position_result_to_numpy(proba_position_result_list, show_logs=True)
+    print(f'Numpy arrays have been created')
 
     # Visualization
     print('\n\nVisualizing the output data...')
