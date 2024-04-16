@@ -2,7 +2,7 @@ import numpy as np
 from utils.position_result import PositionResult, PositionFullResult, PositionTopResult
 from utils.softmax import softmax
 
-def position_result_to_numpy(results: list[PositionResult]) -> tuple[np.ndarray, np.ndarray]:
+def position_result_to_numpy(results: list[PositionResult], show_logs=False) -> tuple[np.ndarray, np.ndarray, int]:
     """
     Convert a list of `PositionResult` to a tuple of numpy arrays (y_true, y_prob) that can be used in sklearn
 
@@ -15,18 +15,27 @@ def position_result_to_numpy(results: list[PositionResult]) -> tuple[np.ndarray,
     """
 
     size = results[0].get_token_data().shape[0]
+    results_len = len(results)
 
-    y_value = np.array([], dtype=np.float32)
-    y_true = np.array([], dtype=np.float32)
-    for result in results:
-        y_value = np.append(y_value, result.get_token_data())
-        y_true = np.append(y_true, [i == result.get_correct_token() for i in range(len(result.get_token_data()))])
+    y_value = np.empty((size * results_len), dtype=np.float32)
+    y_true = np.empty((size * results_len), dtype=np.float32)
+    for i in range(results_len):
+        result = results[i]
+        token_data = result.get_token_data()
+        correct_token = result.get_correct_token()
+
+        y_value[i*size:(i+1)*size] = token_data
+        y_true[i*size:(i+1)*size] = [i == correct_token for i in range(size)]
 
         assert result.get_token_data().shape[0] == size
         # This implementations assumes that every PositionResult has the same number of tokens.
         # If this is not the case, the sizes should be returned as a list
         #
         # Except for that, the other places may need to be changed to handle the case where the sizes are different
+
+        if show_logs:
+            if i % 100 == 0:
+                print(f"position_result_to_numpy: {i}/{results_len}")
     
     assert y_true.shape == y_value.shape
 
