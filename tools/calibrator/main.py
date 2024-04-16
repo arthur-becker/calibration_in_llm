@@ -7,7 +7,6 @@ from utils.convert import position_result_to_numpy, logits_to_proba
 from evaluate import evaluate
 from sklearn.isotonic import IsotonicRegression
 import numpy as np
-from utils.normalize import normalize, denormalize
 import joblib
 import yaml
 
@@ -28,9 +27,6 @@ def read_args():
         help='The script will split the logits in `calibration_steps` parts and create `calibration_steps`'
             ' different calibration models each being calibrated on different amount of input tokens. This is important'
             ' to understand the necessary amount of data to calibrate the model properly.')
-    parser.add_argument('-normalize_input', 
-        action='store_true',
-        help='Normalize the input probabilities before calibration')
     return parser.parse_args()
 
 if __name__ == "__main__":
@@ -41,7 +37,6 @@ if __name__ == "__main__":
         'args': {
             'calibration_set_run': args.calibration_set_run,
             'test_set_run': args.test_set_run,
-            'normalize_input': args.normalize_input,
             'calibration_steps': args.calibration_steps
         },
         'calibration_set': {
@@ -68,12 +63,6 @@ if __name__ == "__main__":
             for logits in calibration_set_run.logits_reader.read()
         ]
     y_true_cal, y_prob_cal, position_size_cal = position_result_to_numpy(position_result_proba)
-
-    if args.normalize_input:
-        print('1.1.1. Normalizing the input probabilities...')
-        y_prob_cal = normalize(y_prob_cal, position_size_cal)
-    else:
-        print('1.1.1. Skipping normalization of the input probabilities...')
 
     print('1.2. Evaluating...')
 
@@ -108,11 +97,6 @@ if __name__ == "__main__":
             for logits in test_set_run.logits_reader.read()
         ]
     y_true_test, y_prob_test, position_size_test = position_result_to_numpy(position_result_proba)
-    if args.normalize_input:
-        print('2.1.1. Normalizing the input probabilities...')
-        y_prob_test = normalize(y_prob_test, position_size_test)
-    else:
-        print('2.1.1. Skipping normalization of the input probabilities...')
 
     print('2.2. Evaluating...')
     save_path = f'./../../outputs/calibrator/{args.output_folder}/uncalibrated_test_set_'
@@ -164,7 +148,6 @@ if __name__ == "__main__":
 
         print(f'3.2. Calibrating the calibration set... [{i+1}/{args.calibration_steps}]')
         y_prob_cal_transformed = iso_regressor.transform(X_probs_cal)
-        #y_prob_cal_transformed = denormalize(y_prob_cal_transformed, y_prob_cal, position_size_cal)
 
         print(f'3.3. Evaluating the calibration set after calibration... [{i+1}/{args.calibration_steps}]')
         save_path = f'./../../outputs/calibrator/{args.output_folder}/isotonic_calibration_set_{i+1}-{args.calibration_steps}_'
@@ -184,7 +167,6 @@ if __name__ == "__main__":
         print(f'3.4. Calibrating the test set... [{i+1}/{args.calibration_steps}]')
         X_prob_test = y_prob_test.reshape(-1, 1)
         y_prob_test_transformed = iso_regressor.transform(X_prob_test)
-        #y_prob_test_transformed = denormalize(y_prob_test_transformed, y_prob_test, position_size_test) 
 
         print(f'3.5. Evaluating the test set after calibration... [{i+1}/{args.calibration_steps}]')
         save_path = f'./../../outputs/calibrator/{args.output_folder}/isotonic_test_set_'
