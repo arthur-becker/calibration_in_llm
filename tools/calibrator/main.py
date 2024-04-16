@@ -22,6 +22,12 @@ def read_args():
     parser.add_argument('output_folder',
         type=str,
         help='Path where the output of this script will be saved.')
+    parser.add_argument('--calibration_steps',
+        type=int,
+        default=1,
+        help='The script will split the logits in `calibration_steps` parts and create `calibration_steps`'
+            ' different calibration models each being calibrated on different amount of input tokens. This is important'
+            ' to understand the necessary amount of data to calibrate the model properly.')
     parser.add_argument('-normalize_input', 
         action='store_true',
         help='Normalize the input probabilities before calibration')
@@ -35,7 +41,8 @@ if __name__ == "__main__":
         'args': {
             'calibration_set_run': args.calibration_set_run,
             'test_set_run': args.test_set_run,
-            'normalize_input': args.normalize_input
+            'normalize_input': args.normalize_input,
+            'calibration_steps': args.calibration_steps
         },
         'calibration_set': {
             'uncalibrated': {},
@@ -135,42 +142,70 @@ if __name__ == "__main__":
     print('3. Calibrating with isotonic regression...')
     print('3.1. Fitting the isotonic regression model...')
     X_probs_cal = y_prob_cal.reshape(-1, 1)
-    min_prob = np.min(X_probs_cal) # Set minimum value to avoid division by 0 when calculating perplexity
-    iso_regressor = IsotonicRegression(out_of_bounds='clip', y_min=min_prob, y_max=1)
-    iso_regressor.fit(X_probs_cal, y_true_cal) # X_probs_cal.ravel() ?
-
-    print('3.2. Calibrating the calibration set...')
-    y_prob_cal_transformed = iso_regressor.transform(X_probs_cal)
-    y_prob_cal_transformed = denormalize(y_prob_cal_transformed, y_prob_cal, position_size_cal)
-
-    print('3.3. Evaluating the calibration set after calibration...')
-    save_path = f'./../../outputs/calibrator/{args.output_folder}/isotonic_calibration_set_'
-    ppl, brier_score = evaluate(y_true_cal, y_prob_cal_transformed, save_path)
-    results['calibration_set']['isotonic']['perplexity'] = ppl
-    results['calibration_set']['isotonic']['perplexity_improvement'] = ppl < results['calibration_set']['uncalibrated']['perplexity']
-    results['calibration_set']['isotonic']['brier_score'] = brier_score
-    results['calibration_set']['isotonic']['brier_score_improvement'] = brier_score < results['calibration_set']['uncalibrated']['brier_score']
-    print(f'Calibration set (isotonic regression): Perplexity={ppl}, Brier score={brier_score}')
-
-    print('3.4. Calibrating the test set...')
-    X_prob_test = y_prob_test.reshape(-1, 1)
-    y_prob_test_transformed = iso_regressor.transform(X_prob_test)
-    y_prob_test_transformed = denormalize(y_prob_test_transformed, y_prob_test, position_size_test) 
-
-    print('3.5. Evaluating the test set after calibration...')
-    save_path = f'./../../outputs/calibrator/{args.output_folder}/isotonic_test_set_'
-    ppl, brier_score = evaluate(y_true_test, y_prob_test_transformed, save_path)
-    results['test_set']['isotonic']['perplexity'] = ppl
-    results['test_set']['isotonic']['perplexity_improvement'] = ppl < results['test_set']['uncalibrated']['perplexity']
-    results['test_set']['isotonic']['brier_score'] = brier_score
-    results['test_set']['isotonic']['brier_score_improvement'] = brier_score < results['test_set']['uncalibrated']['brier_score']
-    print(f'Test set (isotonic regression): Perplexity={ppl}, Brier score={brier_score}')
-
-    print('3.6. Saving the isotonic regression model...')
-    joblib.dump(iso_regressor, f'./../../outputs/calibrator/{args.output_folder}/isotonic_regressor.joblib')
     
-    print('4. Calibrating with Platt Scaling...')
-    # TODO: Calibrate with Platt Scaling
+    results['calibration_set']['isotonic'] = []
+    results['test_set']['isotonic'] = []
+    num_tokens_steps = []
+    ppl_steps_cal = []
+    brier_score_steps_cal = []
+    ppl_steps_test = []
+    brier_score_steps_test = []
+
+    for i in range(args.calibration_steps):
+        # TODO: Split the calibration set into `calibration_steps` parts
+        num_tokens = int(len(X_probs_cal) * (i+1) / args.calibration_steps)
+        num_tokens_steps.append(num_tokens)
+        X_probs_cal_effective = X_probs_cal[:num_tokens]
+        y_true_cal_effective = y_true_cal[:num_tokens]
+
+        min_prob = np.min(X_probs_cal_effective) # Set minimum value to avoid division by 0 when calculating perplexity
+        iso_regressor = IsotonicRegression(out_of_bounds='clip', y_min=min_prob, y_max=1)
+        iso_regressor.fit(X_probs_cal_effective, y_true_cal_effective) # X_probs_cal.ravel() ?
+
+        print(f'3.2. Calibrating the calibration set... [{i+1}/{args.calibration_steps}]')
+        y_prob_cal_transformed = iso_regressor.transform(X_probs_cal)
+        #y_prob_cal_transformed = denormalize(y_prob_cal_transformed, y_prob_cal, position_size_cal)
+
+        print(f'3.3. Evaluating the calibration set after calibration... [{i+1}/{args.calibration_steps}]')
+        save_path = f'./../../outputs/calibrator/{args.output_folder}/isotonic_calibration_set_{i+1}-{args.calibration_steps}_'
+        ppl, brier_score = evaluate(y_true_cal, y_prob_cal_transformed, save_path)
+        ppl_steps_cal.append(ppl)
+        brier_score_steps_cal.append(brier_score)
+        calibration_results = {
+            'calibration_step': i,
+            'perplexity': ppl,
+            'perplexity_improvement': ppl < results['calibration_set']['uncalibrated']['perplexity'],
+            'brier_score': brier_score,
+            'brier_score_improvement': brier_score < results['calibration_set']['uncalibrated']['brier_score']
+        }
+        results['calibration_set']['isotonic'].append(calibration_results)
+        print(f'Calibration set (isotonic regression): Perplexity={ppl}, Brier score={brier_score}')
+
+        print(f'3.4. Calibrating the test set... [{i+1}/{args.calibration_steps}]')
+        X_prob_test = y_prob_test.reshape(-1, 1)
+        y_prob_test_transformed = iso_regressor.transform(X_prob_test)
+        #y_prob_test_transformed = denormalize(y_prob_test_transformed, y_prob_test, position_size_test) 
+
+        print(f'3.5. Evaluating the test set after calibration... [{i+1}/{args.calibration_steps}]')
+        save_path = f'./../../outputs/calibrator/{args.output_folder}/isotonic_test_set_'
+        ppl, brier_score = evaluate(y_true_test, y_prob_test_transformed, save_path)
+        ppl_steps_test.append(ppl)
+        brier_score_steps_test.append(brier_score)
+        calibration_results = {
+            'calibration_step': i,
+            'perplexity': ppl,
+            'perplexity_improvement': ppl < results['test_set']['uncalibrated']['perplexity'],
+            'brier_score': brier_score,
+            'brier_score_improvement': brier_score < results['test_set']['uncalibrated']['brier_score']
+        }
+        results['test_set']['isotonic'].append(calibration_results)
+        print(f'Test set (isotonic regression): Perplexity={ppl}, Brier score={brier_score}')
+
+        print(f'3.6. Saving the isotonic regression model... [{i+1}/{args.calibration_steps}]')
+        joblib.dump(iso_regressor, f'./../../outputs/calibrator/{args.output_folder}/isotonic_regressor.joblib')
+
+        print('4. Calibrating with Platt Scaling...')
+        # TODO: Calibrate with Platt Scaling
 
     print('4. Saving the results...')
     with open(f'./../../outputs/calibrator/{args.output_folder}/results.yaml', 'w') as f:
