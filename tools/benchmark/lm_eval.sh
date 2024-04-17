@@ -11,8 +11,15 @@ if [ -z "$LLAMA_CPP_URL" ]; then
 fi
 echo "\nLLAMA_CPP_URL: $LLAMA_CPP_URL"
 
+# Ask if all the layers have to be put on the GPU
+read -p "How many layers do you want to put on the GPU? (0 = no, -1=all) [-1]: " N_GPU_LAYERS
+if [ -z "$N_GPU_LAYERS" ]; then
+        N_GPU_LAYERS=-1
+fi
+
 echo "\n\nRunning the evaluation harness with the following parameters:"
 echo "> python3 -m lm_eval --model gguf --tasks gsm8k_cot_self_consistency --model_args base_url=$LLAMA_CPP_URL \n\n"
 lm_eval --model gguf \
         --tasks gsm8k_cot_self_consistency \
-        --model_args base_url=$LLAMA_CPP_URL
+        --model_args base_url=$LLAMA_CPP_URL \
+        --n_gpu_layers $N_GPU_LAYERS
