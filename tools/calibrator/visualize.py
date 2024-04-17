@@ -6,10 +6,10 @@ from matplotlib import pyplot as plt
 from utils.convert import position_result_to_numpy, logits_to_proba
 from sklearn.calibration import calibration_curve
 
-# TODO: visualize the distribution of the output data
-
+FIG_SIZE = (7, 7)
 
 def visualize_hist(y_true, y_prob, show=False, save=True, save_name=None, bins=10):
+    plt.figure(figsize=FIG_SIZE)
     plt.hist(y_prob, bins=bins)
 
     if show:
@@ -21,7 +21,7 @@ def visualize_hist(y_true, y_prob, show=False, save=True, save_name=None, bins=1
         plt.savefig(save_name)
 
 def visualize_calibration_curve(y_true, y_prob, show=False, save=True, save_name=None, bins=10):
-    plt.figure(figsize=(10, 10))
+    plt.figure(figsize=FIG_SIZE)
     plt.plot([0, 1], [0, 1], "k:", label="Perfectly calibrated")
     prob_true, prob_pred = calibration_curve(y_true, y_prob, n_bins=bins)
     plt.plot(prob_pred, prob_true, marker='o', label=f'Calibration curve')
