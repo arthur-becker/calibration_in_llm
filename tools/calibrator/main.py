@@ -5,6 +5,7 @@ import os
 from experiment_info import RunInfo
 from utils.convert import position_result_to_numpy, logits_to_proba
 from utils.inverse_sigmoid import inverse_sigmoid
+from visualize import visualize_changes
 from evaluate import evaluate
 from sklearn.isotonic import IsotonicRegression
 from sklearn.linear_model import LogisticRegression
@@ -136,7 +137,9 @@ class MainPipeline:
             yaml.dump(results, f)
         print(f'Results saved in {self.output_folder_path}')
 
-        # TODO: copy the info.yaml file from the calibration set to the output folder
+        self._visualize_calibration_steps()
+
+        # Copy the info.yaml file from the calibration set to the output folder
         shutil.copy(self.calibration_set_run.run_info_path, self.output_folder_path + '/calibration_set_info.yaml')
         shutil.copy(self.test_set_run.run_info_path, self.output_folder_path + '/test_set_info.yaml')
 
@@ -256,6 +259,84 @@ class MainPipeline:
         data = SequenceData(y_true, y_proba, position_size)
         data.X_proba = y_proba.reshape(-1, 1)
         return data
+    
+    def _visualize_calibration_steps(self):
+        folder_path = f'{self.output_folder_path}/general'
+        folder_path_over_steps = f'{folder_path}/over_steps'
+        folder_path_over_num_logits = f'{folder_path}/over_num_logits'
+        os.makedirs(folder_path_over_steps, exist_ok=True)
+        os.makedirs(folder_path_over_num_logits, exist_ok=True)
+
+        # Over steps
+        visualize_changes(
+            range(self.calibration_steps + 1),
+            [self.iso_stats_cal.ppl, self.log_stats_cal.ppl],
+            ['Isotonic regression', 'Platt scaling'],
+            xlabel='Calibration steps',
+            ylabel='Perplexity',
+            save_name=f'{folder_path_over_steps}/ppl_cal.png'
+        )
+        visualize_changes(
+            range(self.calibration_steps + 1),
+            [self.iso_stats_test.ppl, self.log_stats_test.ppl],
+            ['Isotonic regression', 'Platt scaling'],
+            xlabel='Calibration steps',
+            ylabel='Perplexity',
+            save_name=f'{folder_path_over_steps}/ppl_test.png'
+        )
+        visualize_changes(
+            range(self.calibration_steps + 1),
+            [self.iso_stats_cal.brier_score, self.log_stats_cal.brier_score],
+            ['Isotonic regression', 'Platt scaling'],
+            xlabel='Calibration steps',
+            ylabel='Brier score',
+            save_name=f'{folder_path_over_steps}/brier_score_cal.png'
+        )
+        visualize_changes(
+            range(self.calibration_steps + 1),
+            [self.iso_stats_test.brier_score, self.log_stats_test.brier_score],
+            ['Isotonic regression', 'Platt scaling'],
+            xlabel='Calibration steps',
+            ylabel='Brier score',
+            save_name=f'{folder_path_over_steps}/brier_score_test.png'
+        )
+
+        # Over num_logits
+        visualize_changes(
+            self.iso_stats_cal.num_logits,
+            [self.iso_stats_cal.ppl, self.log_stats_cal.ppl],
+            ['Isotonic regression', 'Platt scaling'],
+            xlabel='Number of logits',
+            ylabel='Perplexity',
+            save_name=f'{folder_path_over_num_logits}/ppl_cal.png'
+        )
+        visualize_changes(
+            self.iso_stats_test.num_logits,
+            [self.iso_stats_test.ppl, self.log_stats_test.ppl],
+            ['Isotonic regression', 'Platt scaling'],
+            xlabel='Number of logits',
+            ylabel='Perplexity',
+            save_name=f'{folder_path_over_num_logits}/ppl_test.png'
+        )
+        visualize_changes(
+            self.iso_stats_cal.num_logits,
+            [self.iso_stats_cal.brier_score, self.log_stats_cal.brier_score],
+            ['Isotonic regression', 'Platt scaling'],
+            xlabel='Number of logits',
+            ylabel='Brier score',
+            save_name=f'{folder_path_over_num_logits}/brier_score_cal.png'
+        )
+        visualize_changes(
+            self.iso_stats_test.num_logits,
+            [self.iso_stats_test.brier_score, self.log_stats_test.brier_score],
+            ['Isotonic regression', 'Platt scaling'],
+            xlabel='Number of logits',
+            ylabel='Brier score',
+            save_name=f'{folder_path_over_num_logits}/brier_score_test.png'
+        )
+        
+        
+
 
 
 if __name__ == "__main__":

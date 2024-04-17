@@ -42,6 +42,38 @@ def visualize_calibration_curve(y_true, y_prob, show=False, save=True, save_name
         plt.savefig(save_name)
         plt.close()
 
+def visualize_changes(X, y_lists, labels, xlabel="X", ylabel="Y", show=False, save=True, save_name=None):
+    plt.figure(figsize=FIG_SIZE)
+
+    assert len(y_lists) == len(labels), 'y_lists and labels should have the same length'
+
+    for i in range(len(y_lists)):
+        y = y_lists[i]
+        assert len(X) == len(y), 'X and y should have the same length'
+        plt.plot(X, y, label=labels[i])
+
+    y_all = []
+    X_all = []
+    for i in range(len(y_lists)):
+        y_all += y_lists[i]
+        X_all += X
+    
+
+    plt.xlabel(xlabel)
+    plt.ylabel(ylabel)
+    plt.scatter(X_all, y_all, color='red', s=50, zorder=5)
+    plt.legend(loc='upper right') 
+    plt.tight_layout()
+
+    if show:
+        plt.show()
+
+    if save:
+        if save_name is None:
+            raise ValueError('save_name should be provided if save is True')
+        plt.savefig(save_name)
+        plt.close()
+
 
 if __name__ == '__main__':
     # Preparation
