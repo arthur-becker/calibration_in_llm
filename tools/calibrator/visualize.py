@@ -10,7 +10,9 @@ FIG_SIZE = (7, 7)
 
 def visualize_hist(y_true, y_prob, show=False, save=True, save_name=None, bins=10):
     plt.figure(figsize=FIG_SIZE)
-    plt.hist(y_prob, bins=bins)
+    plt.hist(y_prob, bins=bins, edgecolor='black')
+    plt.yscale('symlog')
+    
 
     if show:
         plt.show()
