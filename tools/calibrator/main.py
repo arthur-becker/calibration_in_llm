@@ -129,13 +129,18 @@ class MainPipeline:
 
         print('Saving the results...')
         results = {
+            "args": {
+                "calibration_set_run": self.calibration_set_run.path,
+                "test_set_run": self.test_set_run.path,
+                "output_folder": self.output_folder_path,
+                "calibration_steps": self.calibration_steps,
+                "prob_bins": self.prob_bins
+            },
             "calibration_set": {
-                "path": self.calibration_set_run.path,
                 "isotonic": self.iso_stats_cal.__dict__(),
                 "logistic": self.log_stats_cal.__dict__()
             },
             "test_set": {
-                "path": self.test_set_run.path,
                 "isotonic": self.iso_stats_test.__dict__(),
                 "logistic": self.log_stats_test.__dict__()
             }
