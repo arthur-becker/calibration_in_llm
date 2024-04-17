@@ -5,6 +5,7 @@ import os
 from experiment_info import RunInfo
 from utils.convert import position_result_to_numpy, logits_to_proba
 from utils.inverse_sigmoid import inverse_sigmoid
+from utils.normalize import normalize
 from visualize import visualize_changes
 from evaluate import evaluate
 from sklearn.isotonic import IsotonicRegression
@@ -227,10 +228,12 @@ class MainPipeline:
 
     def _calibrate(self, regressor, seq_data: SequenceData):
         if isinstance(regressor, IsotonicRegression):
-            return regressor.transform(seq_data.X_proba)
+            X_proba = regressor.transform(seq_data.X_proba)
+            return normalize(X_proba, seq_data.position_size)
         elif isinstance(regressor, LogisticRegression):
             X_logits = inverse_sigmoid(seq_data.X_proba)
-            return regressor.predict_proba(X_logits)[:, 1]
+            X_proba = regressor.predict_proba(X_logits)[:, 1]
+            return normalize(X_proba, seq_data.position_size)
         else:
             raise ValueError('Unknown regressor type.')
 
