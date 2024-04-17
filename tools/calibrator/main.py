@@ -34,6 +34,10 @@ def read_args():
         help='The script will split the logits in `calibration_steps` parts and create `calibration_steps`'
             ' different calibration models each being calibrated on different amount of input tokens. This is important'
             ' to understand the necessary amount of data to calibrate the model properly.')
+    parser.add_argument('--prob-bins', 
+        type=int, 
+        default=20,
+        help='Number of bins to visualize on the probability histogram or calibration curve. Default is 50.')
     return parser.parse_args()
 
 @dataclass
@@ -80,13 +84,16 @@ class MainPipeline:
             calibration_set_run: RunInfo,
             test_set_run: RunInfo,
             output_folder: str,
-            calibration_steps: int = 1
+            calibration_steps: int = 1,
+            prob_bins: int = 50
         ) -> None:
         assert calibration_steps > 0, 'The number of calibration steps must be greater than 0.'
+        assert prob_bins > 0, 'The number of probability bins must be greater than 0.'
 
         self.calibration_set_run = calibration_set_run
         self.test_set_run = test_set_run
         self.calibration_steps = calibration_steps
+        self.prob_bins = prob_bins
 
         self.cal_proba : SequenceData = None
         self.test_proba : SequenceData = None
@@ -236,7 +243,11 @@ class MainPipeline:
         y_proba_cal = self.cal_proba.y_proba
         if step > 0:
             y_proba_cal = self._calibrate(regressor, self.cal_proba)
-        ppl_cal, brier_score_cal = evaluate(self.cal_proba.y_true, y_proba_cal, save_path_cal)
+        ppl_cal, brier_score_cal = evaluate(
+            self.cal_proba.y_true, 
+            y_proba_cal, 
+            save_path_cal, 
+            prob_bins=self.prob_bins)
         stats_cal.add(num_logits, ppl_cal, brier_score_cal)
 
         # Test set
@@ -244,7 +255,11 @@ class MainPipeline:
         y_proba_test = self.test_proba.y_proba
         if step > 0:
             y_proba_test = self._calibrate(regressor, self.test_proba)
-        ppl_test, brier_score_test = evaluate(self.test_proba.y_true, y_proba_test, save_path_test)
+        ppl_test, brier_score_test = evaluate(
+            self.test_proba.y_true, 
+            y_proba_test, 
+            save_path_test, 
+            prob_bins=self.prob_bins)
         stats_test.add(num_logits, ppl_test, brier_score_test)
 
         return ppl_cal, brier_score_cal, ppl_test, brier_score_test
@@ -348,6 +363,7 @@ if __name__ == "__main__":
         RunInfo(args.calibration_set_run),
         RunInfo(args.test_set_run),
         args.output_folder,
-        args.calibration_steps
+        args.calibration_steps,
+        prob_bins=args.prob_bins
     )
     pipeline.run()

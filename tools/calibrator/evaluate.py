@@ -20,7 +20,8 @@ def read_args():
 def evaluate(
         y_true: np.ndarray,
         y_prob: np.ndarray,
-        output_folder_path: str,):
+        output_folder_path: str,
+        prob_bins: int = 10):
     """
     Evaluate the model with different calibration types:
     - uncalibrated probabilities
@@ -29,8 +30,16 @@ def evaluate(
     """
 
     # Visualize
-    visualize_hist(y_true, y_prob, save_name=output_folder_path + 'probabilities_distribution.png')
-    visualize_calibration_curve(y_true, y_prob, save_name=output_folder_path + 'calibration_curve.png')
+    visualize_hist(
+        y_true, 
+        y_prob, 
+        save_name=output_folder_path + 'probabilities_distribution.png', 
+        bins=prob_bins)
+    visualize_calibration_curve(
+        y_true, 
+        y_prob, 
+        save_name=output_folder_path + 'calibration_curve.png', 
+        bins=prob_bins)
 
     # Calculate metrics
     ppl = perplexity(y_true, y_prob)
