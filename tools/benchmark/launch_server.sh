@@ -40,15 +40,24 @@ if [ -z "$CALIBRATOR_PATH" ]; then
     done
 fi
 
+# Ask if all the layers have to be put on the GPU
+read -p "How many layers do you want to put on the GPU? (0 = no, -1=all) [-1]: " N_GPU_LAYERS
+if [ -z "$N_GPU_LAYERS" ]; then
+        N_GPU_LAYERS=-1
+fi
+
+
 echo "Starting the server with the following parameters:"
 
 if [ -z "$CALIBRATOR_PATH" ]; then
-    echo "> python3 -m llama_cpp.server --model $MODEL_PATH \n\n"
-    python3 -m llama_cpp.server \
-        --model $MODEL_PATH
-else
-    echo "> python3 -m llama_cpp.server --model $MODEL_PATH --calibrator_path $CALIBRATOR_PATH \n\n"
+    echo "> python3 -m llama_cpp.server --model $MODEL_PATH --n_gpu_layers $N_GPU_LAYERS \n\n"
     python3 -m llama_cpp.server \
         --model $MODEL_PATH \
-        --calibrator_path $CALIBRATOR_PATH
+        --n_gpu_layers $N_GPU_LAYERS
+else
+    echo "> python3 -m llama_cpp.server --model $MODEL_PATH --calibrator_path $CALIBRATOR_PATH --n_gpu_layers $N_GPU_LAYERS \n\n"
+    python3 -m llama_cpp.server \
+        --model $MODEL_PATH \
+        --calibrator_path $CALIBRATOR_PATH \
+        --n_gpu_layers $N_GPU_LAYERS
 fi
