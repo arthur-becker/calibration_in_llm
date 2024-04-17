@@ -12,7 +12,7 @@ fi
 echo "\nLLAMA_CPP_URL: $LLAMA_CPP_URL"
 
 echo "\n\nRunning the evaluation harness with the following parameters:"
-echo "> python3 -m lm_eval --model gguf --tasks mmlu_flan_cot_fewshot --model_args base_url=$LLAMA_CPP_URL \n\n"
+echo "> python3 -m lm_eval --model gguf --tasks gsm8k_cot_self_consistency --model_args base_url=$LLAMA_CPP_URL \n\n"
 lm_eval --model gguf \
-        --tasks mmlu_flan_cot_fewshot \
+        --tasks gsm8k_cot_self_consistency \
         --model_args base_url=$LLAMA_CPP_URL
