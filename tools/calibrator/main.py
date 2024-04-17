@@ -4,13 +4,16 @@ import argparse
 import os
 from experiment_info import RunInfo
 from utils.convert import position_result_to_numpy, logits_to_proba
+from utils.inverse_sigmoid import inverse_sigmoid
 from evaluate import evaluate
 from sklearn.isotonic import IsotonicRegression
+from sklearn.linear_model import LogisticRegression
 import numpy as np
 import joblib
 import yaml
 from dataclasses import dataclass, field
 from typing import List
+
 import shutil
 
 def read_args():
@@ -35,9 +38,9 @@ def read_args():
 @dataclass
 class SequenceData:
     y_true: np.ndarray
-    y_value: np.ndarray
+    y_proba: np.ndarray
     position_size: np.ndarray
-    X_value: np.ndarray = None
+    X_proba: np.ndarray = None
 
 @dataclass
 class CalibrationStepStats:
@@ -121,12 +124,12 @@ class MainPipeline:
             "calibration_set": {
                 "path": self.calibration_set_run.path,
                 "isotonic": self.iso_stats_cal.__dict__(),
-                "logistic": None
+                "logistic": self.log_stats_cal.__dict__()
             },
             "test_set": {
                 "path": self.test_set_run.path,
                 "isotonic": self.iso_stats_test.__dict__(),
-                "logistic": None
+                "logistic": self.log_stats_test.__dict__()
             }
         }
         with open(f'{self.output_folder_path}/results.yaml', 'w') as f:
@@ -144,26 +147,28 @@ class MainPipeline:
         Convention: all the logs written from a calibration step
         should have -- at the beginning of the line.
         """
-        num_logits = int(len(self.cal_proba.X_value) * (step) / args.calibration_steps)
+        num_logits = int(len(self.cal_proba.X_proba) * (step) / args.calibration_steps)
         print(f'-- Calibration set size: {num_logits} logits/probabilities.')
 
         step_folder_path = f'{self.output_folder_path}/step_{step}-{args.calibration_steps}'
 
         # Effective calibration data for the calibration step i
-        X_proba_cal = self.cal_proba.X_value[:num_logits]
+        X_proba_cal = self.cal_proba.X_proba[:num_logits]
         y_true_cal = self.cal_proba.y_true[:num_logits]
 
         # Isotonic regression
         iso_regressor = None
         if step == 0:
             os.makedirs(step_folder_path, exist_ok=True)
-            self._evaluate(
+            ppl_cal, brier_score_cal, ppl_test, brier_score_test = self._evaluate(
                 step,
                 num_logits,
                 self.iso_stats_cal,
                 self.iso_stats_test,
                 step_folder_path,
                 regressor=None)
+            self.log_stats_cal.add(num_logits, ppl_cal, brier_score_cal)
+            self.log_stats_test.add(num_logits, ppl_test, brier_score_test)
         else:
             # Calibrate with isotonic regression
             min_prob = np.min(X_proba_cal) # Set minimum value to avoid division by 0 when calculating perplexity
@@ -184,9 +189,35 @@ class MainPipeline:
                 regressor=iso_regressor)
             
             # Calibrate with logistic regression
+            log_regressor = LogisticRegression(solver='lbfgs')
+            # NOTE: calibration is done on the logits
+            X_logits_cal = inverse_sigmoid(X_proba_cal)
+            log_regressor.fit(X_logits_cal, y_true_cal)
+            print(f'-- Logistic Regressor has been trained. Starting calibration...')
+
+            log_regressor_folder_path = f'{step_folder_path}/logistic_regressor'
+            os.makedirs(log_regressor_folder_path, exist_ok=True)
+            joblib.dump(log_regressor, f'{log_regressor_folder_path}/model.joblib')
+            print(f'-- Model saved.')
+            self._evaluate(
+                step,
+                num_logits,
+                self.log_stats_cal,
+                self.log_stats_test,
+                log_regressor_folder_path,
+                regressor=log_regressor)
 
         print(f'-- Evaluation completed')
         print(f'-- Calibration step {step} completed.')
+
+    def _calibrate(self, regressor, seq_data: SequenceData):
+        if isinstance(regressor, IsotonicRegression):
+            return regressor.transform(seq_data.X_proba)
+        elif isinstance(regressor, LogisticRegression):
+            X_logits = inverse_sigmoid(seq_data.X_proba)
+            return regressor.predict_proba(X_logits)[:, 1]
+        else:
+            raise ValueError('Unknown regressor type.')
 
     def _evaluate(
             self, 
@@ -199,28 +230,31 @@ class MainPipeline:
         ):
         # Calibration set
         save_path_cal = f'{save_folder_path}/calibration_set_'
-        y_proba_cal = self.cal_proba.y_value
+        y_proba_cal = self.cal_proba.y_proba
         if step > 0:
-            y_proba_cal = regressor.transform(self.cal_proba.X_value)
-        ppl, brier_score = evaluate(self.cal_proba.y_true, y_proba_cal, save_path_cal)
-        stats_cal.add(num_logits, ppl, brier_score)
+            y_proba_cal = self._calibrate(regressor, self.cal_proba)
+        ppl_cal, brier_score_cal = evaluate(self.cal_proba.y_true, y_proba_cal, save_path_cal)
+        stats_cal.add(num_logits, ppl_cal, brier_score_cal)
 
         # Test set
         save_path_test = f'{save_folder_path}/test_set_'
-        y_proba_test = self.test_proba.y_value
+        y_proba_test = self.test_proba.y_proba
         if step > 0:
-            y_proba_test = regressor.transform(self.test_proba.X_value)
-        ppl, brier_score = evaluate(self.test_proba.y_true, y_proba_test, save_path_test)
-        stats_test.add(num_logits, ppl, brier_score)
+            y_proba_test = self._calibrate(regressor, self.test_proba)
+        ppl_test, brier_score_test = evaluate(self.test_proba.y_true, y_proba_test, save_path_test)
+        stats_test.add(num_logits, ppl_test, brier_score_test)
+
+        return ppl_cal, brier_score_cal, ppl_test, brier_score_test
 
     def _load_data(self, run_info: RunInfo) -> SequenceData:
         position_result_proba = [
                 logits_to_proba(logits) 
                 for logits in run_info.logits_reader.read()
             ]
+        
         y_true, y_proba, position_size = position_result_to_numpy(position_result_proba)
         data = SequenceData(y_true, y_proba, position_size)
-        data.X_value = y_proba.reshape(-1, 1)
+        data.X_proba = y_proba.reshape(-1, 1)
         return data
 
 
