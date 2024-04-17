@@ -148,8 +148,6 @@ class MainPipeline:
         print(f'-- Calibration set size: {num_logits} logits/probabilities.')
 
         step_folder_path = f'{self.output_folder_path}/step_{step}-{args.calibration_steps}'
-        iso_regressor_folder_path = f'{step_folder_path}/isotonic_regressor'
-        os.makedirs(iso_regressor_folder_path, exist_ok=True)
 
         # Effective calibration data for the calibration step i
         X_proba_cal = self.cal_proba.X_value[:num_logits]
@@ -157,24 +155,36 @@ class MainPipeline:
 
         # Isotonic regression
         iso_regressor = None
-        if step > 0:
+        if step == 0:
+            os.makedirs(step_folder_path, exist_ok=True)
+            self._evaluate(
+                step,
+                num_logits,
+                self.iso_stats_cal,
+                self.iso_stats_test,
+                step_folder_path,
+                regressor=None)
+        else:
             # Calibrate with isotonic regression
             min_prob = np.min(X_proba_cal) # Set minimum value to avoid division by 0 when calculating perplexity
             iso_regressor = IsotonicRegression(out_of_bounds='clip', y_min=min_prob, y_max=1)
             iso_regressor.fit(X_proba_cal, y_true_cal)
             print(f'-- Isotonic Regressor has been trained. Starting calibration...')
 
+            iso_regressor_folder_path = f'{step_folder_path}/isotonic_regressor'
+            os.makedirs(iso_regressor_folder_path, exist_ok=True)
             joblib.dump(iso_regressor, f'{iso_regressor_folder_path}/model.joblib')
             print(f'-- Model saved.')
-        self._evaluate(
-            step,
-            num_logits,
-            self.iso_stats_cal,
-            self.iso_stats_test,
-            iso_regressor_folder_path,
-            regressor=iso_regressor)
-        
-        # TODO: Logistic regression
+            self._evaluate(
+                step,
+                num_logits,
+                self.iso_stats_cal,
+                self.iso_stats_test,
+                iso_regressor_folder_path,
+                regressor=iso_regressor)
+            
+            # Calibrate with logistic regression
+
         print(f'-- Evaluation completed')
         print(f'-- Calibration step {step} completed.')
 
@@ -187,15 +197,6 @@ class MainPipeline:
             save_folder_path: str,
             regressor = None
         ):
-        subfolder = None
-        if isinstance(regressor, IsotonicRegression):
-            subfolder = 'isotonic_regressor'
-        elif regressor is None and step == 0:
-            subfolder = 'uncalibrated'
-            print(f'-- Evaluating uncalibrated model...')
-        else:
-            raise ValueError(f'Unknown regressor type: {type(regressor)}')
-        
         # Calibration set
         save_path_cal = f'{save_folder_path}/calibration_set_'
         y_proba_cal = self.cal_proba.y_value
