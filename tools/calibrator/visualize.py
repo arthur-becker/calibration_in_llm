@@ -21,6 +21,7 @@ def visualize_hist(y_true, y_prob, show=False, save=True, save_name=None, bins=1
         if save_name is None:
             raise ValueError('save_name should be provided if save is True')
         plt.savefig(save_name)
+        plt.close()
 
 def visualize_calibration_curve(y_true, y_prob, show=False, save=True, save_name=None, bins=10):
     plt.figure(figsize=FIG_SIZE)
@@ -39,6 +40,7 @@ def visualize_calibration_curve(y_true, y_prob, show=False, save=True, save_name
         if save_name is None:
             raise ValueError('save_name should be provided if save is True')
         plt.savefig(save_name)
+        plt.close()
 
 
 if __name__ == '__main__':
