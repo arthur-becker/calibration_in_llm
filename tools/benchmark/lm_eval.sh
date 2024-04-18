@@ -30,7 +30,8 @@ echo "\nOUTPUT_DIR: $OUTPUT_DIR\n\n"
 
 # Run the evaluation harness with the given parameters
 echo "\n\nRunning the evaluation harness with the following parameters:"
-echo "> python3 -m lm_eval --model gguf --tasks $TASKS --model_args base_url=$LLAMA_CPP_URL --output_path $OUTPUT_DIR \n\n"
+echo "> python3 -m lm_eval --model gguf --tasks $TASKS --model_args base_url=$LLAMA_CPP_URL --output_path $OUTPUT_DIR --log_samples \n\n"
 lm_eval --model gguf \
         --tasks $TASKS \
-        --model_args base_url=$LLAMA_CPP_URL
+        --model_args base_url=$LLAMA_CPP_URL \
+        --log_samples
