@@ -7,7 +7,8 @@
 LLAMA_CPP_PYTHON_REPO="https://github.com/arthur-becker/calibrated-llama-cpp-python.git@add-calibration"
 LM_EVALUATION_HARNESS_REPO="https://github.com/arthur-becker/lm-evaluation-harness.git@llama-temperature-sampling"
 
-pip install git+$LLAMA_CPP_PYTHON_REPO
+echo "It is assumed that you have CUDA installed on your system. If you don't, please install it before proceeding.\n"
+CMAKE_ARGS="-DLLAMA_CUDA=on" pip install git+$LLAMA_CPP_PYTHON_REPO
 echo "LLAMA_CPP_PYTHON installed\n"
 
 pip install 'llama-cpp-python[server]'
