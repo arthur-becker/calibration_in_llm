@@ -39,4 +39,5 @@ echo "> python3 -m lm_eval --model gguf --tasks $TASKS --model_args base_url=$LL
 lm_eval --model gguf \
         --tasks $TASKS \
         --model_args base_url=$LLAMA_CPP_URL \
+        --output_path $OUTPUT_DIR \
         --log_samples
