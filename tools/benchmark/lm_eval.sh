@@ -18,10 +18,19 @@ if [ -z "$TASKS" ]; then
         TASKS="gsm8k_cot_self_consistency_small"
 fi
 
+# Ask user to provide the output directory for the evaluation results until the user provides a valid directory
+echo "\nPlease provide the output directory for the evaluation results."
+read -p "Enter the output directory for the evaluation results: " OUTPUT_DIR
+while [ ! -d "$OUTPUT_DIR" ]; do
+        echo "The directory $OUTPUT_DIR does not exist. Please enter a valid directory."
+        read -p "Enter the output directory for the evaluation results: " OUTPUT_DIR
+done
+echo "\nOUTPUT_DIR: $OUTPUT_DIR\n\n"
+
 
 # Run the evaluation harness with the given parameters
 echo "\n\nRunning the evaluation harness with the following parameters:"
-echo "> python3 -m lm_eval --model gguf --tasks $TASKS --model_args base_url=$LLAMA_CPP_URL \n\n"
+echo "> python3 -m lm_eval --model gguf --tasks $TASKS --model_args base_url=$LLAMA_CPP_URL --output_path $OUTPUT_DIR \n\n"
 lm_eval --model gguf \
         --tasks $TASKS \
         --model_args base_url=$LLAMA_CPP_URL
