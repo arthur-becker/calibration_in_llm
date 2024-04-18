@@ -11,8 +11,17 @@ if [ -z "$LLAMA_CPP_URL" ]; then
 fi
 echo "\nLLAMA_CPP_URL: $LLAMA_CPP_URL"
 
+# Ask user to provide a list of tasks to evaluate the model on, separated by commas. If none are provided, assume the default task.
+echo "\nPlease provide a list of tasks to evaluate the model on, separated by commas. If none are provided, the default task will be used."
+read -p "Enter the tasks to evaluate the model on [gsm8k_cot_self_consistency_small]: " TASKS
+if [ -z "$TASKS" ]; then
+        TASKS="gsm8k_cot_self_consistency_small"
+fi
+
+
+# Run the evaluation harness with the given parameters
 echo "\n\nRunning the evaluation harness with the following parameters:"
-echo "> python3 -m lm_eval --model gguf --tasks gsm8k_cot_self_consistency_small --model_args base_url=$LLAMA_CPP_URL \n\n"
+echo "> python3 -m lm_eval --model gguf --tasks $TASKS --model_args base_url=$LLAMA_CPP_URL \n\n"
 lm_eval --model gguf \
-        --tasks gsm8k_cot_self_consistency_small \
+        --tasks $TASKS \
         --model_args base_url=$LLAMA_CPP_URL
