@@ -236,6 +236,17 @@ class MainPipeline:
             return normalize(X_proba, seq_data.position_size)
         else:
             raise ValueError('Unknown regressor type.')
+        
+    def checkSorted(self, y_value, position_size):
+        for i in range(0, len(y_value), position_size):
+            to_test = y_value[i+1:i+position_size] # Skip the first element because it is the correct token
+            first = to_test[0]
+            for j in range(1, len(to_test)):
+                if first >= to_test[j]:
+                    first = to_test[j]
+                else:
+                    return False
+        return True
 
     def _evaluate(
             self, 
@@ -263,6 +274,20 @@ class MainPipeline:
         y_proba_test = self.test_proba.y_proba
         if step > 0:
             y_proba_test = self._calibrate(regressor, self.test_proba)
+
+            print("\n\n\n")
+            print(
+                "checkSorted(y_proba_test, self.test_proba.y_proba): ", 
+                self.checkSorted(self.test_proba.y_proba, self.test_proba.position_size))
+
+
+            print(
+                "checkSorted(y_proba_test, self.test_proba.position_size): ", 
+                self.checkSorted(y_proba_test, self.test_proba.position_size))
+            
+
+
+
         ppl_test, brier_score_test = evaluate(
             self.test_proba.y_true, 
             y_proba_test, 
