@@ -18,15 +18,20 @@ if [ -z "$TASKS" ]; then
         TASKS="gsm8k_cot_self_consistency_small"
 fi
 
-# Ask user to provide the output directory for the evaluation results until the user provides a valid directory
-echo "\nPlease provide the output directory for the evaluation results."
-read -p "Enter the output directory for the evaluation results: " OUTPUT_DIR
-while [ ! -d "$OUTPUT_DIR" ]; do
-        echo "The directory $OUTPUT_DIR does not exist. Please enter a valid directory."
-        read -p "Enter the output directory for the evaluation results: " OUTPUT_DIR
+# Ask for the name of the output directory until the user provides a non-empty name
+PATH_PREFIX="../../outputs/benchmark"
+while true; do
+        read -p "Enter the name of the output directory: " OUTPUT_DIR_NAME
+        if [ -z "$OUTPUT_DIR_NAME" ]; then
+                echo "You did not provide a name for the output directory. Please enter a valid name."
+        elif [ -d "$PATH_PREFIX/$OUTPUT_DIR_NAME" ]; then
+                echo "The directory already exists. Please enter a different name."
+        else
+                break
+        fi
 done
-echo "\nOUTPUT_DIR: $OUTPUT_DIR\n\n"
-
+OUTPUT_DIR="$PATH_PREFIX/$OUTPUT_DIR_NAME"
+echo "\nOutput directory: $OUTPUT_DIR"
 
 # Run the evaluation harness with the given parameters
 echo "\n\nRunning the evaluation harness with the following parameters:"
