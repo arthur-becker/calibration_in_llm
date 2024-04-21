@@ -27,7 +27,6 @@ def download_split(split_name):
 
     print("Writing LM eval prompts to file...")
     with open(f"{SAVE_DIR}/gsm8k_lm_eval_{split_name}.txt", "a") as file:
-        print("Writing LM eval prompts to file...")
         for i, example in enumerate(dataset):
             question = example["question"].replace("\n", " ")
             answer = example["answer"].replace("\n", " ")
