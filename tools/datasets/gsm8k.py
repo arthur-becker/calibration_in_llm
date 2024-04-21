@@ -18,7 +18,7 @@ SAVE_DIR = "./../../outputs/datasets"
 
 def download_split(split_name):
     print(f"Initalizing GSM8K dataset ({split_name})...")
-    dataset = datasets.load_dataset("gsm8k", "main", split="train")
+    dataset = datasets.load_dataset("gsm8k", "main", split=split_name)
 
     # Check if the file already exists
     if os.path.exists(f"{SAVE_DIR}/gsm8k_lm_eval_{split_name}.txt"):
