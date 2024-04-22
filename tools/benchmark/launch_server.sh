@@ -46,6 +46,12 @@ if [ -z "$N_GPU_LAYERS" ]; then
         N_GPU_LAYERS=-1
 fi
 
+# Ask what port to use. Default is 8000
+read -p "Enter the port to use [8000]: " PORT
+if [ -z "$PORT" ]; then
+    PORT=8000
+fi
+
 
 echo "Starting the server with the following parameters:"
 
@@ -53,11 +59,13 @@ if [ -z "$CALIBRATOR_PATH" ]; then
     echo "> python3 -m llama_cpp.server --model $MODEL_PATH --n_gpu_layers $N_GPU_LAYERS \n\n"
     python3 -m llama_cpp.server \
         --model $MODEL_PATH \
-        --n_gpu_layers $N_GPU_LAYERS
+        --n_gpu_layers $N_GPU_LAYERS \
+        --port $PORT
 else
     echo "> python3 -m llama_cpp.server --model $MODEL_PATH --calibrator_path $CALIBRATOR_PATH --n_gpu_layers $N_GPU_LAYERS \n\n"
     python3 -m llama_cpp.server \
         --model $MODEL_PATH \
         --calibrator_path $CALIBRATOR_PATH \
-        --n_gpu_layers $N_GPU_LAYERS
+        --n_gpu_layers $N_GPU_LAYERS \
+        --port $PORT
 fi
