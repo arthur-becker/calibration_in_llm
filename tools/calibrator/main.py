@@ -39,6 +39,10 @@ def read_args():
         type=int, 
         default=20,
         help='Number of bins to visualize on the probability histogram or calibration curve. Default is 50.')
+    parser.add_argument('--disable_normalization',
+        action='store_true',
+        help='Disables normalization of the probabilities. Default is disables.',
+        default=False)
     return parser.parse_args()
 
 @dataclass
@@ -86,7 +90,8 @@ class MainPipeline:
             test_set_run: RunInfo,
             output_folder: str,
             calibration_steps: int = 1,
-            prob_bins: int = 50
+            prob_bins: int = 50,
+            disable_normalization: bool = False
         ) -> None:
         assert calibration_steps > 0, 'The number of calibration steps must be greater than 0.'
         assert prob_bins > 0, 'The number of probability bins must be greater than 0.'
@@ -95,6 +100,7 @@ class MainPipeline:
         self.test_set_run = test_set_run
         self.calibration_steps = calibration_steps
         self.prob_bins = prob_bins
+        self.disable_normalization = disable_normalization
 
         self.cal_proba : SequenceData = None
         self.test_proba : SequenceData = None
@@ -116,6 +122,7 @@ class MainPipeline:
 
     def run(self):
         print('STARTING MAIN PIPELINE...')
+        print(f'Disable normalization: {self.disable_normalization}')
         self.cal_proba : SequenceData = self._load_data(self.calibration_set_run)
         self.test_proba : SequenceData = self._load_data(self.test_set_run)
 
@@ -229,11 +236,17 @@ class MainPipeline:
     def _calibrate(self, regressor, seq_data: SequenceData):
         if isinstance(regressor, IsotonicRegression):
             X_proba = regressor.transform(seq_data.X_proba)
-            return normalize(X_proba, seq_data.position_size)
+            if self.disable_normalization:
+                return X_proba
+            else:
+                return normalize(X_proba, seq_data.position_size)
         elif isinstance(regressor, LogisticRegression):
             X_logits = inverse_sigmoid(seq_data.X_proba)
             X_proba = regressor.predict_proba(X_logits)[:, 1]
-            return normalize(X_proba, seq_data.position_size)
+            if self.disable_normalization:
+                return X_proba
+            else:
+                return normalize(X_proba, seq_data.position_size)
         else:
             raise ValueError('Unknown regressor type.')
         
