@@ -410,6 +410,7 @@ if __name__ == "__main__":
         RunInfo(args.test_set_run),
         args.output_folder,
         args.calibration_steps,
-        prob_bins=args.prob_bins
+        prob_bins=args.prob_bins,
+        disable_normalization=args.disable_normalization
     )
     pipeline.run()
